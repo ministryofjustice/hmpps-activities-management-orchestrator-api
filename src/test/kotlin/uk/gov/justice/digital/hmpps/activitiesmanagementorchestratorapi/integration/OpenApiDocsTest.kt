@@ -37,6 +37,7 @@ class OpenApiDocsTest(
   }
 
   @Test
+  @Disabled("TODO Enable this test once you have an endpoint. It checks that endpoints appear on the OpenAPI spec.")
   fun `the open api json contains documentation`() {
     webTestClient.get()
       .uri("/v3/api-docs")

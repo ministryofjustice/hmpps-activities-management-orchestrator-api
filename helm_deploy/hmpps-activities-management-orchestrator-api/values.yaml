@@ -12,7 +12,7 @@ generic-service:
   ingress:
     enabled: true
     host: app-hostname.local # override per environment
-    tlsSecretName: hmpps-activities-management-orchestrator-api-cert
+    tlsSecretName: activities-orchestrator-api-cert
 
   # Environment variables to load into the deployment
   env:
@@ -28,11 +28,6 @@ generic-service:
     #
     # Fixed memory example:
     #   JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1024m"
-
-  # Pre-existing kubernetes secrets to load as environment variables in the deployment.
-  # namespace_secrets:
-  #   [name of kubernetes secret]:
-  #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
 
   namespace_secrets:
     hmpps-activities-management-orchestrator-api-application-insights:
