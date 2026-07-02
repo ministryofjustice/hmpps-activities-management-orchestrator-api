@@ -2,7 +2,7 @@ ARG BASE_IMAGE=ghcr.io/ministryofjustice/hmpps-eclipse-temurin:25-jre-jammy
 FROM --platform=$BUILDPLATFORM ${BASE_IMAGE} AS builder
 
 WORKDIR /builder
-COPY hmpps-activities-management-orchestrator-api-${BUILD_NUMBER}.jar app.jar
+COPY hmpps-activities-management-orchestrator-api-*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 FROM ${BASE_IMAGE}
