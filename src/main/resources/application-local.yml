@@ -1,3 +1,11 @@
 hmpps:
   auth:
     url: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+
+activities:
+  api:
+    url: "https://activities-api-dev.prison.service.justice.gov.uk"
+
+prisoner-search:
+  api:
+    url: "https://prisoner-search-dev.prison.service.justice.gov.uk"

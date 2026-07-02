@@ -16,25 +16,16 @@ generic-service:
 
   # Environment variables to load into the deployment
   env:
+    JAVA_TOOL_OPTIONS: "$(JAVA_PROXY_TOOL_OPTIONS) -XX:+ExitOnOutOfMemoryError -XX:MaxRAMPercentage=50.0"
     SERVER_PORT: "8080"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
-    # JAVA_TOOL_OPTIONS is set in the base image (hmpps-eclipse-temurin) with:
-    #   -XX:MaxRAMPercentage=50.0
-    # Uncomment below to override memory settings if needed.
-    # Check resources.limits.memory is set appropriately.
-    #
-    # Percentage-based example:
-    #   JAVA_TOOL_OPTIONS: "-XX:InitialRAMPercentage=50.0 -XX:MaxRAMPercentage=75.0"
-    #
-    # Fixed memory example:
-    #   JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1024m"
 
   namespace_secrets:
     hmpps-activities-management-orchestrator-api-application-insights:
       APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
     hmpps-activities-management-orchestrator-api-client-creds:
-      API_CLIENT_ID: "API_CLIENT_ID"
-      API_CLIENT_SECRET: "API_CLIENT_SECRET"
+      SYSTEM_CLIENT_ID: "SYSTEM_CLIENT_ID"
+      SYSTEM_CLIENT_SECRET: "SYSTEM_CLIENT_SECRET"
 
   allowlist:
     groups:
