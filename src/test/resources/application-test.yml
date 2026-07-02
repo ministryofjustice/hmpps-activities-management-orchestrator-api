@@ -9,6 +9,14 @@ hmpps:
   auth:
     url: "http://localhost:8090/auth"
 
+activities:
+  api:
+    url: "http://localhost:8091"
+
+prisoner-search:
+  api:
+    url: "http://localhost:8092"
+
 springdoc:
   api-docs:
     enabled: true

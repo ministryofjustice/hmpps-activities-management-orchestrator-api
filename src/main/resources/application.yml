@@ -6,10 +6,8 @@ spring:
   application:
     name: hmpps-activities-management-orchestrator-api
 
-#  This jackson configuration is only applied for java.util.Date.
-#  It is ignored for LocalDateTime, and therefore unnecessary for most projects
-#  jackson:
-#    date-format: "yyyy-MM-dd HH:mm:ss"
+  jackson:
+    date-format: "yyyy-MM-dd HH:mm:ss"
 
   security:
     oauth2:
@@ -19,10 +17,16 @@ spring:
 
       client:
         registration:
+          activities-management-api:
+            provider: hmpps-auth
+            client-id: ${system.client.id}
+            client-secret: ${system.client.secret}
+            authorization-grant-type: client_credentials
+            scope: read
           prisoner-search:
             provider: hmpps-auth
-            client-id: ${api.client.id}
-            client-secret: ${api.client.secret}
+            client-id: ${system.client.id}
+            client-secret: ${system.client.secret}
             authorization-grant-type: client_credentials
             scope: read
         provider:
