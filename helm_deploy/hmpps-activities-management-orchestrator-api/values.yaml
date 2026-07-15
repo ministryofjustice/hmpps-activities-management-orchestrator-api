@@ -18,6 +18,8 @@ generic-service:
   env:
     SERVER_PORT: "8080"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
+    APPLICATIONINSIGHTS_STATSBEAT_DISABLED: "true"
+    JAVA_TOOL_OPTIONS: "$(JAVA_PROXY_TOOL_OPTIONS) -XX:+ExitOnOutOfMemoryError -XX:MaxRAMPercentage=50.0"
 
   namespace_secrets:
     hmpps-activities-management-orchestrator-api-application-insights:
@@ -25,6 +27,11 @@ generic-service:
     hmpps-activities-management-orchestrator-api-client-creds:
       SYSTEM_CLIENT_ID: "SYSTEM_CLIENT_ID"
       SYSTEM_CLIENT_SECRET: "SYSTEM_CLIENT_SECRET"
+    hmpps-envoy-https-proxy-env:
+      HTTP_PROXY: "HTTP_PROXY"
+      HTTPS_PROXY: "HTTPS_PROXY"
+      NO_PROXY: "NO_PROXY"
+      JAVA_PROXY_TOOL_OPTIONS: "JAVA_PROXY_TOOL_OPTIONS"
 
   allowlist:
     groups:
