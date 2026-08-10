@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integra
 
 import io.swagger.v3.parser.OpenAPIV3Parser
 import net.minidev.json.JSONArray
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -61,7 +61,7 @@ class OpenApiDocsTest(
       .exchange()
       .expectStatus().isOk
       .expectBody().jsonPath("*..operationId").value<List<String>> { list ->
-        assertThat(list).filteredOn { it.contains("_") }.isEmpty()
+        Assertions.assertThat(list).filteredOn { it.contains("_") }.isEmpty()
       }
   }
 
@@ -78,7 +78,7 @@ class OpenApiDocsTest(
   @Test
   fun `the open api json is valid`() {
     val result = OpenAPIV3Parser().readLocation("http://localhost:$port/v3/api-docs", null, null)
-    assertThat(result.messages).isEmpty()
+    Assertions.assertThat(result.messages).isEmpty()
   }
 
   @Test
@@ -90,7 +90,7 @@ class OpenApiDocsTest(
     // We therefore need to grab all the valid security requirements and check that each path only contains those items
     val securityRequirements = result.openAPI.security.flatMap { it.keys }
     result.openAPI.paths.forEach { pathItem ->
-      assertThat(pathItem.value.get.security.flatMap { it.keys }).isSubsetOf(securityRequirements)
+      Assertions.assertThat(pathItem.value.get.security.flatMap { it.keys }).isSubsetOf(securityRequirements)
     }
   }
 
@@ -107,7 +107,7 @@ class OpenApiDocsTest(
       .jsonPath("$.components.securitySchemes.$key.type").isEqualTo("http")
       .jsonPath("$.components.securitySchemes.$key.scheme").isEqualTo("bearer")
       .jsonPath("$.components.securitySchemes.$key.description").value<String> {
-        assertThat(it).contains(role)
+        Assertions.assertThat(it).contains(role)
       }
       .jsonPath("$.components.securitySchemes.$key.bearerFormat").isEqualTo("JWT")
       .jsonPath("$.security[0].$key").isEqualTo(JSONArray().apply { this.add("read") })
