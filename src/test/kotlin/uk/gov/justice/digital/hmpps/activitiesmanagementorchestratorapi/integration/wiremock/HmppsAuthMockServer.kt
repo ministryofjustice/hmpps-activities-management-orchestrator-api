@@ -18,6 +18,7 @@ class HmppsAuthApiExtension :
   BeforeAllCallback,
   AfterAllCallback,
   BeforeEachCallback {
+
   companion object {
     @JvmField
     val hmppsAuth = HmppsAuthMockServer()
@@ -25,10 +26,12 @@ class HmppsAuthApiExtension :
 
   override fun beforeAll(context: ExtensionContext) {
     hmppsAuth.start()
+    hmppsAuth.stubGrantToken()
   }
 
   override fun beforeEach(context: ExtensionContext) {
     hmppsAuth.resetRequests()
+    hmppsAuth.stubGrantToken()
   }
 
   override fun afterAll(context: ExtensionContext) {

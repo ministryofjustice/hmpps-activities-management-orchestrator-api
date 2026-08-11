@@ -1,0 +1,58 @@
+package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto
+
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import java.time.LocalDateTime
+
+@Schema(description = "Events Data for review")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class EventReviewDto(
+  @Schema(description = "The internally-generated ID for this event", example = "123456")
+  val eventReviewId: Long = 0,
+
+  @Schema(description = "Describes the service which generated this event", example = "prisoner-offender-search")
+  val serviceIdentifier: String? = null,
+
+  @Schema(description = "The internal name for the event", example = "prisoner-offender-events.prisoner.cell-move")
+  val eventType: String? = null,
+
+  @Schema(description = "The date and time that this event occurred", example = "2022-10-01T23:11:01")
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  val eventTime: LocalDateTime? = null,
+
+  @Schema(description = "The prison code where this event took place", example = "MDI")
+  val prisonCode: String? = null,
+
+  @Schema(description = "The prisoner number which this event relates to", example = "G1234FF")
+  val prisonerNumber: String? = null,
+
+  @Schema(description = "The booking ID related to this prisoner", example = "123456")
+  val bookingId: Int? = null,
+
+  @Schema(
+    description = "The description of the event that occurred",
+    example = "The prisoner was moved to a different cell.",
+  )
+  val eventData: String? = null,
+
+  @Schema(description = "The date and time that this event was acknowledged.", example = "2022-10-01T23:11:01")
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  val acknowledgedTime: LocalDateTime? = null,
+
+  @Schema(description = "The username of the person who acknowledged the event.", example = "U4588F")
+  val acknowledgedBy: String? = null,
+
+  @Schema(
+    description = "A simple description of the event acton",
+    example = "ACTIVITY_SUSPENDED",
+  )
+  val eventDescription: EventReviewDescription? = null,
+
+  @Schema(
+    description = "The current allocations for the prisoner",
+    example = "[\"KITCHEN AM\", \"GYM PM\"]",
+  )
+  val activeAllocations: List<String> = emptyList(),
+)

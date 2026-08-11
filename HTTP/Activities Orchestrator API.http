@@ -1,0 +1,9 @@
+### Gets event data for review
+// @no-log
+< {%
+    request.variables.set("prisonCode", "LEI")
+%}
+
+GET {{ baseUrl }}/event-review/prison/{{prisonCode}}?date=2023-09-25
+Authorization: Bearer {{$auth.token("auth-token")}}
+Content-Type: application/json
