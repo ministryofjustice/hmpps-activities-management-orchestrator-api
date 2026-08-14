@@ -33,5 +33,5 @@ class WebClientConfiguration(
   @Bean
   fun activitiesWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder
     .authorisedWebClient(authorizedClientManager, "activities-management-api", activitiesManagementApiBaseUrl, timeout)
-    .also { log.info("WEB CLIENT CONFIG: creating activities api web client") }
+    .also { log.info("WEB CLIENT CONFIG: creating activities management api web client") }
 }

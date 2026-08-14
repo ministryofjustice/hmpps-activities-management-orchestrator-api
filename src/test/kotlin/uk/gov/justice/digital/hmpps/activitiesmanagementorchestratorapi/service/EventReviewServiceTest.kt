@@ -28,7 +28,7 @@ class EventReviewServiceTest {
       totalElements = 2L,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date)).thenReturn(apiResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
 
     val result = eventReviewService.getEventsDataForReview("MDI", date)
 
@@ -70,7 +70,7 @@ class EventReviewServiceTest {
       totalPages = 0,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date)).thenReturn(emptyResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(emptyResponse)
 
     val result = eventReviewService.getEventsDataForReview("MDI", date)
 

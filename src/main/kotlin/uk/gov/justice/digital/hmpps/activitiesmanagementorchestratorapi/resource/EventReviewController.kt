@@ -64,6 +64,6 @@ class EventReviewController(
     prisonerNumber: String? = null,
     @RequestParam(required = false)
     @Parameter(description = "Whether to include acknowledged events")
-    includeAcknowledged: Boolean? = false,
+    includeAcknowledged: Boolean? = null,
   ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumber, includeAcknowledged)
 }
