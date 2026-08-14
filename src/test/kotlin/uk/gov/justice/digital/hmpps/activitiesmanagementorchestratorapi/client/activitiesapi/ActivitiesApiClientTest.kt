@@ -17,11 +17,9 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReview
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper.eventReviewSearchResultsFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.ActivitiesApiMockServer
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class ActivitiesApiClientTest {
   private lateinit var activitiesApiClient: ActivitiesApiClient
@@ -53,24 +51,7 @@ class ActivitiesApiClientTest {
   @Test
   fun `should get events for review with all parameters`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
-    val expectedResult = EventReviewSearchResults(
-      content = listOf(
-        EventReview(
-          eventReviewId = 1L,
-          serviceIdentifier = "SAA",
-          eventType = "prison-offender-events.prisoner.released",
-          eventTime = LocalDateTime.of(2026, 8, 1, 10, 0),
-          prisonCode = "MDI",
-          prisonerNumber = "A1234AA",
-          bookingId = 12345,
-          eventData = "some data",
-          activeAllocations = listOf("Test Allocation"),
-        ),
-      ),
-      pageNumber = 0,
-      totalElements = 1,
-      totalPages = 1,
-    )
+    val expectedResult = eventReviewSearchResultsFactory()
 
     activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
 
@@ -100,9 +81,8 @@ class ActivitiesApiClientTest {
   @Test
   fun `should get events for review with default parameters`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
-    val expectedResult = EventReviewSearchResults(
+    val expectedResult = eventReviewSearchResultsFactory(
       content = emptyList(),
-      pageNumber = 0,
       totalElements = 0,
       totalPages = 0,
     )
@@ -128,9 +108,8 @@ class ActivitiesApiClientTest {
   @Test
   fun `should not include prisonerNumber query param when null`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
-    val expectedResult = EventReviewSearchResults(
+    val expectedResult = eventReviewSearchResultsFactory(
       content = emptyList(),
-      pageNumber = 0,
       totalElements = 0,
       totalPages = 0,
     )
@@ -152,9 +131,8 @@ class ActivitiesApiClientTest {
   @Test
   fun `should not include includeAcknowledged query param when null`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
-    val expectedResult = EventReviewSearchResults(
+    val expectedResult = eventReviewSearchResultsFactory(
       content = emptyList(),
-      pageNumber = 0,
       totalElements = 0,
       totalPages = 0,
     )
@@ -202,24 +180,7 @@ class ActivitiesApiClientTest {
   inner class RetryingFailedApiCalls {
     val prisonCode = "MDI"
     val date = LocalDate.of(2026, 8, 1)
-    val expectedResult = EventReviewSearchResults(
-      content = listOf(
-        EventReview(
-          eventReviewId = 1L,
-          serviceIdentifier = "SAA",
-          eventType = "prison-offender-events.prisoner.released",
-          eventTime = LocalDateTime.of(2026, 8, 1, 10, 0),
-          prisonCode = "MDI",
-          prisonerNumber = "A1234AA",
-          bookingId = 12345,
-          eventData = "some data",
-          activeAllocations = listOf("Test Allocation"),
-        ),
-      ),
-      pageNumber = 0,
-      totalElements = 1,
-      totalPages = 1,
-    )
+    val expectedResult = eventReviewSearchResultsFactory()
 
     @Test
     fun `will succeed if number of fails is less than maximum allowed`(): Unit = runTest {

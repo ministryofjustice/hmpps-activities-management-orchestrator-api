@@ -4,7 +4,7 @@ hmpps:
   auth:
     url: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
 
-activities:
+activities-management:
   api:
     url: "http://localhost:8080"
 
