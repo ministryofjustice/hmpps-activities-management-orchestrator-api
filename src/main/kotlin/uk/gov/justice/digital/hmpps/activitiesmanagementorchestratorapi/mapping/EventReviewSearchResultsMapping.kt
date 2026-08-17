@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.a
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 
-internal fun EventReviewSearchResults.toModel(): EventReviewSearchResultsDto = EventReviewSearchResultsDto(
+internal fun EventReviewSearchResults.toDto(): EventReviewSearchResultsDto = EventReviewSearchResultsDto(
   content = content.map { it.toDto() },
   pageNumber = pageNumber,
   totalElements = totalElements,

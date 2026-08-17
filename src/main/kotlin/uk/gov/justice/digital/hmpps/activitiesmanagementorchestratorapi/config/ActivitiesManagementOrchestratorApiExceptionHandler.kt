@@ -8,8 +8,10 @@ import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
@@ -26,8 +28,19 @@ class ActivitiesManagementOrchestratorApiExceptionHandler {
       ),
     ).also { log.info("Validation exception: {}", e.message) }
 
-  @ExceptionHandler(NoResourceFoundException::class)
-  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+  @ExceptionHandler(MissingServletRequestParameterException::class)
+  fun handleMissingServletRequestParameterException(e: MissingServletRequestParameterException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = "Missing parameter: ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.info("Missing request parameter: {}", e.message) }
+
+  @ExceptionHandler(NoResourceFoundException::class, WebClientResponseException.NotFound::class)
+  fun handleNoResourceFoundException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(NOT_FOUND)
     .body(
       ErrorResponse(
