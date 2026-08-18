@@ -6,7 +6,7 @@ hmpps:
 
 activities-management:
   api:
-    url: "http://localhost:8080"
+    url: "https://activities-api-dev.prison.service.justice.gov.uk"
 
 prisoner-search:
   api:
