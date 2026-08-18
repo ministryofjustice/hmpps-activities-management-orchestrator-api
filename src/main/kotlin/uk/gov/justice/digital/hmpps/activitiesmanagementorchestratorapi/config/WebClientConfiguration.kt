@@ -14,7 +14,7 @@ import java.time.Duration
 @Configuration
 class WebClientConfiguration(
   @param:Value("\${hmpps.auth.url}") val hmppsAuthBaseUrl: String,
-  @param:Value("\${activities-management.api.url}") val activitiesManagementApiBaseUrl: String,
+  @param:Value("\${activities.api.url}") val activitiesManagementApiBaseUrl: String,
   @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @param:Value("\${api.timeout:20s}") val timeout: Duration,
 ) {
