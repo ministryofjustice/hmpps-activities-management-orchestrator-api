@@ -14,7 +14,7 @@ import java.time.Duration
 @Configuration
 class WebClientConfiguration(
   @param:Value("\${hmpps.auth.url}") val hmppsAuthBaseUrl: String,
-  @param:Value("\${activities-management.api.url}") val activitiesManagementApiBaseUrl: String,
+  @param:Value("\${activities.api.url}") val activitiesApiBaseUrl: String,
   @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @param:Value("\${api.timeout:20s}") val timeout: Duration,
 ) {
@@ -28,10 +28,10 @@ class WebClientConfiguration(
   fun hmppsAuthHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(hmppsAuthBaseUrl, healthTimeout)
 
   @Bean
-  fun activitiesHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(activitiesManagementApiBaseUrl, healthTimeout)
+  fun activitiesHealthWebClient(builder: WebClient.Builder): WebClient = builder.healthWebClient(activitiesApiBaseUrl, healthTimeout)
 
   @Bean
   fun activitiesWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder
-    .authorisedWebClient(authorizedClientManager, "activities-management-api", activitiesManagementApiBaseUrl, timeout)
+    .authorisedWebClient(authorizedClientManager, "activities-management-api", activitiesApiBaseUrl, timeout)
     .also { log.info("WEB CLIENT CONFIG: creating activities management api web client") }
 }
