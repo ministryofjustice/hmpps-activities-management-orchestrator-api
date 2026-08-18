@@ -9,7 +9,7 @@ hmpps:
   auth:
     url: "http://localhost:8090/auth"
 
-activities-management:
+activities:
   api:
     url: "http://localhost:8091"
 
