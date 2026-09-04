@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper.eventReviewFactory
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper.eventReviewSearchResultsFactory
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 import java.time.LocalDate
 
 class EventReviewIntegrationTest : IntegrationTestBase() {

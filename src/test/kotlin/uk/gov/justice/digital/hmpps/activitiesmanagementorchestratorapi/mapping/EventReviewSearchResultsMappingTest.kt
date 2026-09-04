@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper.eventReviewFactory
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper.eventReviewSearchResultsFactory
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 
 class EventReviewSearchResultsMappingTest {
 
