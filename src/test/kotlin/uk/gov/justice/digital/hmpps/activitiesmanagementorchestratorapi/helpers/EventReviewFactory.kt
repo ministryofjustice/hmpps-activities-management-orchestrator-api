@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helper
+package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers
 
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReview
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription

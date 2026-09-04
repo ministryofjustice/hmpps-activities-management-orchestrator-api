@@ -12,6 +12,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.ActivitiesApiExtension
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiExtension
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiExtension.Companion.prisonerSearchApiServer
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 internal const val USERNAME = "TestUser"
@@ -19,6 +21,7 @@ internal const val USERNAME = "TestUser"
 @ExtendWith(
   HmppsAuthApiExtension::class,
   ActivitiesApiExtension::class,
+  PrisonerSearchApiExtension::class,
 )
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -49,6 +52,7 @@ abstract class IntegrationTestBase {
 
   protected fun stubPingWithResponse(status: Int) {
     hmppsAuth.stubHealthPing(status)
+    prisonerSearchApiServer.stubHealthPing(status)
   }
 
   internal final inline fun <reified T : Any> WebTestClient.ResponseSpec.success(status: HttpStatus = HttpStatus.OK): T = expectStatus().isEqualTo(status)

@@ -15,8 +15,10 @@ import java.time.Duration
 class WebClientConfiguration(
   @param:Value("\${hmpps.auth.url}") val hmppsAuthBaseUrl: String,
   @param:Value("\${activities.api.url}") val activitiesApiBaseUrl: String,
+  @param:Value("\${prisoner-search.api.url}") private val prisonerSearchApiUrl: String,
   @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @param:Value("\${api.timeout:20s}") val timeout: Duration,
+  @param:Value("\${prisoner-search.api.timeout:10s}") private val shorterTimeout: Duration,
 ) {
 
   companion object {
@@ -34,4 +36,12 @@ class WebClientConfiguration(
   fun activitiesWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient = builder
     .authorisedWebClient(authorizedClientManager, "activities-management-api", activitiesApiBaseUrl, timeout)
     .also { log.info("WEB CLIENT CONFIG: creating activities management api web client") }
+
+  @Bean
+  fun prisonerSearchApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonerSearchApiUrl, healthTimeout)
+
+  @Bean
+  fun prisonerSearchApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder
+    .authorisedWebClient(authorizedClientManager, "prisoner-search", prisonerSearchApiUrl, shorterTimeout)
+    .also { log.info("WEB CLIENT CONFIG: creating prisoner search api web client") }
 }
