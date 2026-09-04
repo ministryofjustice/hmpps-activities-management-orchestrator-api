@@ -14,7 +14,7 @@ class PrisonerNumber private constructor(val value: String) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
 
-    other as PrisonerNumber
+    if (other !is PrisonerNumber) return false
 
     return value == other.value
   }
