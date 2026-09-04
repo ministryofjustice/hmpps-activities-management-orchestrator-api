@@ -66,17 +66,17 @@ class PrisonerSearchApiClientTest {
     val prisonerNumbers = listOf("A1234BC", "B2345CD", "C3456DE", "D4567EF", "E5678FG")
 
     val batch1 = listOf(
-      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "A1234BC", bookingId = 1),
-      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "B2345CD", bookingId = 2),
+      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "A1234BC"),
+      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "B2345CD"),
     )
     prisonerSearchApiMockServer.stubSearchByPrisonerNumbers(batch1.map { it.prisonerNumber }, batch1)
     val batch2 = listOf(
-      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "C3456DE", bookingId = 3),
-      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "D4567EF", bookingId = 4),
+      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "C3456DE"),
+      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "D4567EF"),
     )
     prisonerSearchApiMockServer.stubSearchByPrisonerNumbers(batch2.map { it.prisonerNumber }, batch2)
     val batch3 = listOf(
-      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "E5678FG", bookingId = 5),
+      PrisonerSearchPrisonerFixture.instance(prisonerNumber = "E5678FG"),
     )
     prisonerSearchApiMockServer.stubSearchByPrisonerNumbers(batch3.map { it.prisonerNumber }, batch3)
 
@@ -86,7 +86,6 @@ class PrisonerSearchApiClientTest {
 
     assertThat(prisoners).hasSize(5)
     assertThat(prisoners.map { it.prisonerNumber }).isEqualTo(prisonerNumbers)
-    assertThat(prisoners.map { it.bookingId }).isEqualTo(listOf("1", "2", "3", "4", "5"))
   }
 
   @Test
