@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service
 
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 
 object PrisonerSearchPrisonerFixture {
   fun instance(
@@ -8,7 +8,7 @@ object PrisonerSearchPrisonerFixture {
     firstName: String = "Joe",
     lastName: String = "Bloggs",
     cellLocation: String? = "1-2-3",
-  ) = Prisoner(
+  ) = PrisonerBasicDetails(
     prisonerNumber = prisonerNumber,
     firstName = firstName,
     lastName = lastName,

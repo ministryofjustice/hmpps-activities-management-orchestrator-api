@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  * @param lastName Last name
  * @param cellLocation In prison cell location
  */
-data class Prisoner(
+data class PrisonerBasicDetails(
 
   @Schema(example = "A1234AA", required = true, description = "Prisoner Number")
   @get:JsonProperty("prisonerNumber", required = true) val prisonerNumber: String,

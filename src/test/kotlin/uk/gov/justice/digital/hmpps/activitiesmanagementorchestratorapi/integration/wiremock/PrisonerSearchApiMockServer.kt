@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
@@ -22,14 +22,14 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
     )
   }
 
-  fun stubSearchByPrisonerNumbers(prisonerNumbers: List<String>, prisoners: List<Prisoner>) {
+  fun stubSearchByPrisonerNumbers(prisonerNumbers: List<String>, prisonersBasicDetails: List<PrisonerBasicDetails>) {
     stubFor(
       WireMock.post(WireMock.urlEqualTo("/prisoner-search/prisoner-numbers"))
         .withRequestBody(equalToJson(mapper.writeValueAsString(PrisonerNumbers(prisonerNumbers = prisonerNumbers)), true, true))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(prisoners))
+            .withBody(mapper.writeValueAsString(prisonersBasicDetails))
             .withStatus(200),
         ),
     )
@@ -48,7 +48,7 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
     )
   }
 
-  fun stubSearchByPrisonerNumbersWithConnectionReset(prisonerNumbers: List<String>, prisoners: List<Prisoner>, numFails: Int = 1) {
+  fun stubSearchByPrisonerNumbersWithConnectionReset(prisonerNumbers: List<String>, prisonersBasicDetails: List<PrisonerBasicDetails>, numFails: Int = 1) {
     val requestBody = equalToJson(mapper.writeValueAsString(PrisonerNumbers(prisonerNumbers = prisonerNumbers)), true, true)
 
     for (i in 1..numFails) {
@@ -73,7 +73,7 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(prisoners))
+            .withBody(mapper.writeValueAsString(prisonersBasicDetails))
             .withStatus(200),
         ),
     )

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.util.context.Context
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.Prisoner
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 
 inline fun <reified T : Any> typeReference() = object : ParameterizedTypeReference<T>() {}
@@ -21,7 +21,7 @@ class PrisonerSearchApiClient(
 ) {
   private val backoffSpec = retryApiService.getBackoffSpec(maxRetryAttempts, backoffMillis)
 
-  suspend fun findByPrisonerNumbers(prisonerNumbers: List<String>, batchSize: Int = 1000): List<Prisoner> {
+  suspend fun findByPrisonerNumbers(prisonerNumbers: List<String>, batchSize: Int = 1000): List<PrisonerBasicDetails> {
     require(batchSize in 1..1000) {
       "Batch size must be between 1 and 1000"
     }
@@ -31,11 +31,11 @@ class PrisonerSearchApiClient(
         .uri("/prisoner-search/prisoner-numbers")
         .bodyValue(PrisonerNumbers(chunk))
         .retrieve()
-        .bodyToMono(typeReference<List<Prisoner>>())
+        .bodyToMono(typeReference<List<PrisonerBasicDetails>>())
         .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-search-api", "path", "/prisoner-search/prisoner-numbers")))
         .awaitSingle()
     }
   }
 
-  suspend fun findByPrisonerNumbersMap(prisonerNumbers: List<String>): Map<String, Prisoner> = findByPrisonerNumbers(prisonerNumbers).associateBy { it.prisonerNumber }
+  suspend fun findByPrisonerNumbersMap(prisonerNumbers: List<String>): Map<String, PrisonerBasicDetails> = findByPrisonerNumbers(prisonerNumbers).associateBy { it.prisonerNumber }
 }
