@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumber
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiMockServer
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonerSearchPrisonerFixture
 class PrisonerSearchApiClientTest {
@@ -130,16 +131,16 @@ class PrisonerSearchApiClientTest {
 
   @Test
   fun `lookupPrisonerNumberByName - success`() = runTest {
-    val forename = "John"
-    val surname = "Smith"
-    val expectedPrisoner = PrisonerSearchPrisonerFixture.instance(prisonerNumber = "A1234BC", firstName = forename, lastName = surname)
+    val firstname = "John"
+    val lastname = "Smith"
+    val expectedPrisonerNumber = PrisonerNumber("A1234BC")
 
-    prisonerSearchApiMockServer.stubLookupPrisonerNumberByName(forename, surname, listOf(expectedPrisoner))
+    prisonerSearchApiMockServer.stubLookupPrisonerNumberByName(firstname, lastname, listOf(expectedPrisonerNumber))
 
-    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName(forename, surname)
+    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName(firstname, lastname)
 
     assertThat(prisoners).hasSize(1)
-    assertThat(prisoners).containsExactly(expectedPrisoner.prisonerNumber)
+    assertThat(prisoners).containsExactly(expectedPrisonerNumber.prisonerNumber)
   }
 
   @Test

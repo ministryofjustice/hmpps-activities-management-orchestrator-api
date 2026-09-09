@@ -53,16 +53,16 @@ class PrisonerController(
   )
   suspend fun getPrisonerNumbers(
     @RequestParam(required = false)
-    @Parameter(description = "The prisoner forename")
-    prisonerForename: String?,
+    @Parameter(description = "The prisoner firstname")
+    prisonerFirstname: String?,
     @RequestParam(required = false)
-    @Parameter(description = "The prisoner surname")
-    prisonerSurname: String?,
+    @Parameter(description = "The prisoner lastname")
+    prisonerLastname: String?,
   ): List<String> {
-    if (prisonerForename.isNullOrBlank() && prisonerSurname.isNullOrBlank()) {
-      throw ValidationException("Either prisonerForename or prisonerSurname must be provided")
+    if (prisonerFirstname.isNullOrBlank() && prisonerLastname.isNullOrBlank()) {
+      throw ValidationException("Either prisonerfirstname or prisonerlastname must be provided")
     }
 
-    return prisonerSearchApiClient.lookupPrisonerNumberByName(prisonerForename.orEmpty(), prisonerSurname.orEmpty())
+    return prisonerSearchApiClient.lookupPrisonerNumberByName(prisonerFirstname.orEmpty(), prisonerLastname.orEmpty())
   }
 }

@@ -4,7 +4,9 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.MatchPrisonersRequest
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumber
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 
 class PrisonerSearchApiMockServer : MockServer(8092) {
@@ -48,43 +50,31 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
     )
   }
 
-  fun stubLookupPrisonerNumberByName(forename: String? = null, surname: String? = null, prisonersBasicDetails: List<PrisonerBasicDetails>) {
-    var requestBuilder = WireMock.post(WireMock.urlPathEqualTo("/prisoner-search/match-prisoners"))
-      .withQueryParam("responseFields", WireMock.equalTo("prisonerNumber"))
-    if (forename != null) {
-      requestBuilder = requestBuilder.withQueryParam("prisonerForename", WireMock.equalTo(forename))
-    }
-    if (surname != null) {
-      requestBuilder = requestBuilder.withQueryParam("prisonerSurname", WireMock.equalTo(surname))
-    }
-
+  fun stubLookupPrisonerNumberByName(firstname: String? = null, lastname: String? = null, prisonerNumbers: List<PrisonerNumber>) {
+    val requestBody = MatchPrisonersRequest(firstName = firstname, lastName = lastname)
     stubFor(
-      requestBuilder.willReturn(
-        WireMock.aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(mapper.writeValueAsString(prisonersBasicDetails))
-          .withStatus(200),
-      ),
+      WireMock.post(WireMock.urlEqualTo("/prisoner-search/match-prisoners?responseFields=prisonerNumber"))
+        .withRequestBody(equalToJson(mapper.writeValueAsString(requestBody), true, true))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(prisonerNumbers))
+            .withStatus(200),
+        ),
     )
   }
 
-  fun stubLookupPrisonerNumberByNameServerError(forename: String? = null, surname: String? = null) {
-    var requestBuilder = WireMock.post(WireMock.urlPathEqualTo("/prisoner-search/match-prisoners"))
-      .withQueryParam("responseFields", WireMock.equalTo("prisonerNumber"))
-    if (forename != null) {
-      requestBuilder = requestBuilder.withQueryParam("prisonerForename", WireMock.equalTo(forename))
-    }
-    if (surname != null) {
-      requestBuilder = requestBuilder.withQueryParam("prisonerSurname", WireMock.equalTo(surname))
-    }
-
+  fun stubLookupPrisonerNumberByNameServerError(firstname: String? = null, lastname: String? = null) {
+    val requestBody = MatchPrisonersRequest(firstName = firstname, lastName = lastname)
     stubFor(
-      requestBuilder.willReturn(
-        WireMock.aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody("""{"status": 500, "errorCode": "INTERNAL_SERVER_ERROR", "userMessage": "Internal server error", "developerMessage": "Internal server error"}""")
-          .withStatus(500),
-      ),
+      WireMock.post(WireMock.urlEqualTo("/prisoner-search/match-prisoners?responseFields=prisonerNumber"))
+        .withRequestBody(equalToJson(mapper.writeValueAsString(requestBody), true, true))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody("""{"status": 500, "errorCode": "INTERNAL_SERVER_ERROR", "userMessage": "Internal server error", "developerMessage": "Internal server error"}""")
+            .withStatus(500),
+        ),
     )
   }
 

@@ -48,7 +48,7 @@ class PrisonerControllerTest {
   }
 
   @Test
-  fun `should allow when only forename is supplied`() = runTest {
+  fun `should allow when only firstname is supplied`() = runTest {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
 
     val result = controller.getPrisonerNumbers("John", null)
@@ -58,7 +58,7 @@ class PrisonerControllerTest {
   }
 
   @Test
-  fun `should allow when only surname is supplied`() = runTest {
+  fun `should allow when only lastname is supplied`() = runTest {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
 
     val result = controller.getPrisonerNumbers(null, "Smith")
@@ -73,7 +73,7 @@ class PrisonerControllerTest {
       controller.getPrisonerNumbers("", "")
     }
 
-    assertThat(exception).hasMessage("Either prisonerForename or prisonerSurname must be provided")
+    assertThat(exception).hasMessage("Either prisonerfirstname or prisonerlastname must be provided")
   }
 
   @Test
@@ -109,7 +109,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
 
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=John&prisonerSurname=Smith")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -125,7 +125,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
 
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=John&prisonerSurname=Smith")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -135,11 +135,11 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   }
 
   @Test
-  fun `should return 200 when only forename is supplied`() = runTest {
+  fun `should return 200 when only firstname is supplied`() = runTest {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
 
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=John")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John")
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -149,11 +149,11 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   }
 
   @Test
-  fun `should return 200 when only surname is supplied`() = runTest {
+  fun `should return 200 when only lastname is supplied`() = runTest {
     whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
 
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerSurname=Smith")
+      .uri("/prisoner/prisoner-number-by-name?prisonerLastname=Smith")
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -163,9 +163,9 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   }
 
   @Test
-  fun `should return 400 when both forename and surname are empty`() {
+  fun `should return 400 when both firstname and lastname are empty`() {
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=&prisonerSurname=")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=&prisonerLastname=")
       .exchange()
       .expectStatus().isBadRequest
 
@@ -173,7 +173,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   }
 
   @Test
-  fun `should return 400 when required surname and forename query parameter is missing`() {
+  fun `should return 400 when required lastname and firstname query parameter is missing`() {
     webTestClient.get()
       .uri("/prisoner/prisoner-number-by-name")
       .exchange()
@@ -186,7 +186,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   @WithAnonymousUser
   fun `should return 401 when not authenticated`() {
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=John&prisonerSurname=Smith")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
       .exchange()
       .expectStatus().isUnauthorized
 
@@ -197,7 +197,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   @WithMockAuthUser(roles = ["WRONG_ROLE"])
   fun `should return 403 when user has incorrect role`() {
     webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerForename=John&prisonerSurname=Smith")
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
       .exchange()
       .expectStatus().isForbidden
 
