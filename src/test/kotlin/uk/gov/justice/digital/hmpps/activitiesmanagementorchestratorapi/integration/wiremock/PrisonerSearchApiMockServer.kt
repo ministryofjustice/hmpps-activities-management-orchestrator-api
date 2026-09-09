@@ -48,6 +48,46 @@ class PrisonerSearchApiMockServer : MockServer(8092) {
     )
   }
 
+  fun stubLookupPrisonerNumberByName(forename: String? = null, surname: String? = null, prisonersBasicDetails: List<PrisonerBasicDetails>) {
+    var requestBuilder = WireMock.post(WireMock.urlPathEqualTo("/prisoner-search/match-prisoners"))
+      .withQueryParam("responseFields", WireMock.equalTo("prisonerNumber"))
+    if (forename != null) {
+      requestBuilder = requestBuilder.withQueryParam("prisonerForename", WireMock.equalTo(forename))
+    }
+    if (surname != null) {
+      requestBuilder = requestBuilder.withQueryParam("prisonerSurname", WireMock.equalTo(surname))
+    }
+
+    stubFor(
+      requestBuilder.willReturn(
+        WireMock.aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(mapper.writeValueAsString(prisonersBasicDetails))
+          .withStatus(200),
+      ),
+    )
+  }
+
+  fun stubLookupPrisonerNumberByNameServerError(forename: String? = null, surname: String? = null) {
+    var requestBuilder = WireMock.post(WireMock.urlPathEqualTo("/prisoner-search/match-prisoners"))
+      .withQueryParam("responseFields", WireMock.equalTo("prisonerNumber"))
+    if (forename != null) {
+      requestBuilder = requestBuilder.withQueryParam("prisonerForename", WireMock.equalTo(forename))
+    }
+    if (surname != null) {
+      requestBuilder = requestBuilder.withQueryParam("prisonerSurname", WireMock.equalTo(surname))
+    }
+
+    stubFor(
+      requestBuilder.willReturn(
+        WireMock.aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody("""{"status": 500, "errorCode": "INTERNAL_SERVER_ERROR", "userMessage": "Internal server error", "developerMessage": "Internal server error"}""")
+          .withStatus(500),
+      ),
+    )
+  }
+
   fun stubSearchByPrisonerNumbersWithConnectionReset(prisonerNumbers: List<String>, prisonersBasicDetails: List<PrisonerBasicDetails>, numFails: Int = 1) {
     val requestBody = equalToJson(mapper.writeValueAsString(PrisonerNumbers(prisonerNumbers = prisonerNumbers)), true, true)
 

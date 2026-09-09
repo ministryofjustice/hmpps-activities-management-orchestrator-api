@@ -9,6 +9,8 @@ import reactor.util.context.Context
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
+import java.util.Optional
+import kotlin.collections.chunked
 
 inline fun <reified T : Any> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -38,4 +40,27 @@ class PrisonerSearchApiClient(
   }
 
   suspend fun findByPrisonerNumbersMap(prisonerNumbers: List<String>): Map<String, PrisonerBasicDetails> = findByPrisonerNumbers(prisonerNumbers).associateBy { it.prisonerNumber }
+
+  suspend fun lookupPrisonerNumberByName(forename: String, surname: String, batchSize: Int = 1000): List<String> {
+    require(batchSize in 1..1000) {
+      "Batch size must be between 1 and 1000"
+    }
+
+    if (surname.isEmpty() && forename.isEmpty()) return emptyList()
+
+    return prisonerSearchApiWebClient.post()
+      .uri { uriBuilder ->
+        uriBuilder
+          .path("/prisoner-search/match-prisoners")
+          .queryParam("responseFields", "prisonerNumber")
+          .queryParamIfPresent("prisonerForename", Optional.ofNullable(forename))
+          .queryParamIfPresent("prisonerSurname", Optional.ofNullable(surname))
+          .build()
+      }
+      .retrieve()
+      .bodyToMono(typeReference<List<PrisonerBasicDetails>>())
+      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-search-api", "path", "/prisoner-search/match-prisoners")))
+      .awaitSingle()
+      .map { basicDetails -> basicDetails.prisonerNumber }
+  }
 }

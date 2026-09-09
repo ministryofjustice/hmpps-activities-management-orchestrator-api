@@ -129,6 +129,54 @@ class PrisonerSearchApiClientTest {
   }
 
   @Test
+  fun `lookupPrisonerNumberByName - success`() = runTest {
+    val forename = "John"
+    val surname = "Smith"
+    val expectedPrisoner = PrisonerSearchPrisonerFixture.instance(prisonerNumber = "A1234BC", firstName = forename, lastName = surname)
+
+    prisonerSearchApiMockServer.stubLookupPrisonerNumberByName(forename, surname, listOf(expectedPrisoner))
+
+    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName(forename, surname)
+
+    assertThat(prisoners).hasSize(1)
+    assertThat(prisoners).containsExactly(expectedPrisoner.prisonerNumber)
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName no names - success`() = runTest {
+    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName("", "")
+
+    assertThat(prisoners).isEmpty()
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName batch size must be greater than zero`() = runTest {
+    val exception = assertThrows<IllegalArgumentException> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith", 0)
+    }
+
+    assertThat(exception).hasMessage("Batch size must be between 1 and 1000")
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName batch size must be less than 1001`() = runTest {
+    val exception = assertThrows<IllegalArgumentException> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith", 1001)
+    }
+
+    assertThat(exception).hasMessage("Batch size must be between 1 and 1000")
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName should throw exception on 500 response`() = runTest {
+    prisonerSearchApiMockServer.stubLookupPrisonerNumberByNameServerError("John", "Smith")
+
+    assertThrows<WebClientResponseException.InternalServerError> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")
+    }
+  }
+
+  @Test
   fun `should throw exception on 500 response`() = runTest {
     val prisonerNumber = "G4793VF"
     prisonerSearchApiMockServer.stubSearchByPrisonerNumbersServerError(listOf(prisonerNumber))
