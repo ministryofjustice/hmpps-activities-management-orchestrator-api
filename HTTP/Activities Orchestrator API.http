@@ -7,3 +7,9 @@
 GET {{ baseUrl }}/event-review/prison/{{prisonCode}}?date=2023-09-25
 Authorization: Bearer {{$auth.token("auth-token")}}
 Content-Type: application/json
+
+### Get prisoner number by name
+GET {{ baseUrl }}/prisoner/prisoner-number-by-name?prisonerForename=JOE
+Authorization: Bearer <<bearerToken>>
+Content-Type: application/json
+

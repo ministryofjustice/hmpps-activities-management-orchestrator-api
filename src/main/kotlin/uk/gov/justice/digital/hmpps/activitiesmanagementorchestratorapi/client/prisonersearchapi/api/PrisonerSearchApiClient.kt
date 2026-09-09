@@ -7,9 +7,10 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.util.context.Context
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.MatchPrisonersRequest
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumber
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
-import java.util.Optional
 import kotlin.collections.chunked
 
 inline fun <reified T : Any> typeReference() = object : ParameterizedTypeReference<T>() {}
@@ -41,26 +42,25 @@ class PrisonerSearchApiClient(
 
   suspend fun findByPrisonerNumbersMap(prisonerNumbers: List<String>): Map<String, PrisonerBasicDetails> = findByPrisonerNumbers(prisonerNumbers).associateBy { it.prisonerNumber }
 
-  suspend fun lookupPrisonerNumberByName(forename: String, surname: String, batchSize: Int = 1000): List<String> {
+  suspend fun lookupPrisonerNumberByName(firstName: String, lastName: String, batchSize: Int = 1000): List<String> {
     require(batchSize in 1..1000) {
       "Batch size must be between 1 and 1000"
     }
 
-    if (surname.isEmpty() && forename.isEmpty()) return emptyList()
+    if (lastName.isEmpty() && firstName.isEmpty()) return emptyList()
 
     return prisonerSearchApiWebClient.post()
       .uri { uriBuilder ->
         uriBuilder
           .path("/prisoner-search/match-prisoners")
           .queryParam("responseFields", "prisonerNumber")
-          .queryParamIfPresent("prisonerForename", Optional.ofNullable(forename))
-          .queryParamIfPresent("prisonerSurname", Optional.ofNullable(surname))
           .build()
       }
+      .bodyValue(MatchPrisonersRequest(firstName, lastName))
       .retrieve()
-      .bodyToMono(typeReference<List<PrisonerBasicDetails>>())
+      .bodyToMono(typeReference<List<PrisonerNumber>>())
       .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-search-api", "path", "/prisoner-search/match-prisoners")))
       .awaitSingle()
-      .map { basicDetails -> basicDetails.prisonerNumber }
+      .map { response -> response.prisonerNumber }
   }
 }
