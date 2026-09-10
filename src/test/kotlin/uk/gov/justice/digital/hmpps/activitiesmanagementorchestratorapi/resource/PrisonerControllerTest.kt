@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.resourc
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
@@ -17,6 +18,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.config.ActivitiesManagementOrchestratorApiExceptionHandler
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
@@ -104,103 +107,188 @@ class PrisonerControllerWebTest : ControllerTestBase() {
     webTestClient = MockMvcWebTestClient.bindTo(mockMvc).build()
   }
 
-  @Test
-  fun `should return 200 with prisoner ids in json array`() = runTest {
-    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
+  @Nested
+  inner class GetPrisonerNumberByName {
+    @Test
+    fun `should return 200 with prisoner ids in json array`() = runTest {
+      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
 
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$.length()").isEqualTo(2)
-      .jsonPath("$[0]").isEqualTo("A1234AA")
-      .jsonPath("$[1]").isEqualTo("A1234AB")
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(2)
+        .jsonPath("$[0]").isEqualTo("A1234AA")
+        .jsonPath("$[1]").isEqualTo("A1234AB")
 
-    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+    }
+
+    @Test
+    fun `should return 200 with empty prisoner id list`() = runTest {
+      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
+
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(0)
+
+      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+    }
+
+    @Test
+    fun `should return 200 when only firstname is supplied`() = runTest {
+      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
+
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$[0]").isEqualTo("A1234AA")
+
+      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "")
+    }
+
+    @Test
+    fun `should return 200 when only lastname is supplied`() = runTest {
+      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
+
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerLastname=Smith")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$[0]").isEqualTo("A1234AA")
+
+      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("", "Smith")
+    }
+
+    @Test
+    fun `should return 400 when both firstname and lastname are empty`() {
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=&prisonerLastname=")
+        .exchange()
+        .expectStatus().isBadRequest
+
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
+
+    @Test
+    fun `should return 400 when required lastname and firstname query parameter is missing`() {
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name")
+        .exchange()
+        .expectStatus().isBadRequest
+
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
+
+    @Test
+    @WithAnonymousUser
+    fun `should return 401 when not authenticated`() {
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+        .exchange()
+        .expectStatus().isUnauthorized
+
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
+
+    @Test
+    @WithMockAuthUser(roles = ["WRONG_ROLE"])
+    fun `should return 403 when user has incorrect role`() {
+      webTestClient.get()
+        .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+        .exchange()
+        .expectStatus().isForbidden
+
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
   }
 
-  @Test
-  fun `should return 200 with empty prisoner id list`() = runTest {
-    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
+  @Nested
+  inner class PostPrisonerDetailsByNumbers {
+    @Test
+    fun `should return 200 with prisoner basic details by numbers`() = runTest {
+      val request = PrisonerNumbers(listOf("A1234AA"))
+      whenever(prisonerSearchApiClient.findByPrisonerNumbers(request.prisonerNumbers)).thenReturn(
+        listOf(
+          PrisonerBasicDetails(
+            prisonerNumber = "A1234AA",
+            firstName = "JOE",
+            lastName = "BLOGGS",
+            cellLocation = "2-1-007",
+          ),
+        ),
+      )
 
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$.length()").isEqualTo(0)
+      webTestClient.post()
+        .uri("/prisoner/prisoner-details-by-numbers")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(1)
+        .jsonPath("$[0].prisonerNumber").isEqualTo("A1234AA")
+        .jsonPath("$[0].firstName").isEqualTo("JOE")
+        .jsonPath("$[0].lastName").isEqualTo("BLOGGS")
+        .jsonPath("$[0].cellLocation").isEqualTo("2-1-007")
 
-    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
-  }
+      verify(prisonerSearchApiClient).findByPrisonerNumbers(request.prisonerNumbers)
+    }
 
-  @Test
-  fun `should return 200 when only firstname is supplied`() = runTest {
-    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
+    @Test
+    fun `should return 400 when prisoner numbers list is empty`() {
+      webTestClient.post()
+        .uri("/prisoner/prisoner-details-by-numbers")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .bodyValue(PrisonerNumbers(emptyList()))
+        .exchange()
+        .expectStatus().isBadRequest
 
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$[0]").isEqualTo("A1234AA")
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
 
-    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "")
-  }
+    @Test
+    fun `should return 400 when prisoner numbers body is missing`() {
+      webTestClient.post()
+        .uri("/prisoner/prisoner-details-by-numbers")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .exchange()
+        .expectStatus().isBadRequest
 
-  @Test
-  fun `should return 200 when only lastname is supplied`() = runTest {
-    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
 
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerLastname=Smith")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("$[0]").isEqualTo("A1234AA")
+    @Test
+    @WithAnonymousUser
+    fun `should return 401 for prisoner details by numbers when not authenticated`() {
+      webTestClient.post()
+        .uri("/prisoner/prisoner-details-by-numbers")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .bodyValue(PrisonerNumbers(listOf("A1234AA")))
+        .exchange()
+        .expectStatus().isUnauthorized
 
-    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("", "Smith")
-  }
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
 
-  @Test
-  fun `should return 400 when both firstname and lastname are empty`() {
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=&prisonerLastname=")
-      .exchange()
-      .expectStatus().isBadRequest
+    @Test
+    @WithMockAuthUser(roles = ["WRONG_ROLE"])
+    fun `should return 403 for prisoner details by numbers when user has incorrect role`() {
+      webTestClient.post()
+        .uri("/prisoner/prisoner-details-by-numbers")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .bodyValue(PrisonerNumbers(listOf("A1234AA")))
+        .exchange()
+        .expectStatus().isForbidden
 
-    verifyNoInteractions(prisonerSearchApiClient)
-  }
-
-  @Test
-  fun `should return 400 when required lastname and firstname query parameter is missing`() {
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name")
-      .exchange()
-      .expectStatus().isBadRequest
-
-    verifyNoInteractions(prisonerSearchApiClient)
-  }
-
-  @Test
-  @WithAnonymousUser
-  fun `should return 401 when not authenticated`() {
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
-      .exchange()
-      .expectStatus().isUnauthorized
-
-    verifyNoInteractions(prisonerSearchApiClient)
-  }
-
-  @Test
-  @WithMockAuthUser(roles = ["WRONG_ROLE"])
-  fun `should return 403 when user has incorrect role`() {
-    webTestClient.get()
-      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
-      .exchange()
-      .expectStatus().isForbidden
-
-    verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchApiClient)
+    }
   }
 }
