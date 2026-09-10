@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumber
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiMockServer
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonerSearchPrisonerFixture
 class PrisonerSearchApiClientTest {
@@ -126,6 +127,54 @@ class PrisonerSearchApiClientTest {
     assertThat(prisonerMap).hasSize(1)
     assertThat(prisonerMap).containsKey("A1234BC")
     assertThat(prisonerMap).doesNotContainKey("B2345CD")
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName - success`() = runTest {
+    val firstname = "John"
+    val lastname = "Smith"
+    val expectedPrisonerNumber = PrisonerNumber("A1234BC")
+
+    prisonerSearchApiMockServer.stubLookupPrisonerNumberByName(firstname, lastname, listOf(expectedPrisonerNumber))
+
+    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName(firstname, lastname)
+
+    assertThat(prisoners).hasSize(1)
+    assertThat(prisoners).containsExactly(expectedPrisonerNumber.prisonerNumber)
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName no names - success`() = runTest {
+    val prisoners = prisonerSearchApiClient.lookupPrisonerNumberByName("", "")
+
+    assertThat(prisoners).isEmpty()
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName batch size must be greater than zero`() = runTest {
+    val exception = assertThrows<IllegalArgumentException> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith", 0)
+    }
+
+    assertThat(exception).hasMessage("Batch size must be between 1 and 1000")
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName batch size must be less than 1001`() = runTest {
+    val exception = assertThrows<IllegalArgumentException> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith", 1001)
+    }
+
+    assertThat(exception).hasMessage("Batch size must be between 1 and 1000")
+  }
+
+  @Test
+  fun `lookupPrisonerNumberByName should throw exception on 500 response`() = runTest {
+    prisonerSearchApiMockServer.stubLookupPrisonerNumberByNameServerError("John", "Smith")
+
+    assertThrows<WebClientResponseException.InternalServerError> {
+      prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")
+    }
   }
 
   @Test

@@ -1,0 +1,206 @@
+package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.resource
+
+import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.context.annotation.Import
+import org.springframework.security.test.context.support.WithAnonymousUser
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.servlet.client.MockMvcWebTestClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.config.ActivitiesManagementOrchestratorApiExceptionHandler
+import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
+
+class PrisonerControllerTest {
+
+  private val prisonerSearchApiClient: PrisonerSearchApiClient = mock()
+  private val controller = PrisonerController(prisonerSearchApiClient)
+
+  @Test
+  fun `should return prisoner ids for matching names`() = runTest {
+    val expected = listOf("A1234AA", "A1234AB")
+
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(expected)
+
+    val result = controller.getPrisonerNumbers("John", "Smith")
+
+    assertThat(result).isEqualTo(expected)
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+  }
+
+  @Test
+  fun `should return empty list when no prisoner matches`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
+
+    val result = controller.getPrisonerNumbers("John", "Smith")
+
+    assertThat(result).isEmpty()
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+  }
+
+  @Test
+  fun `should allow when only firstname is supplied`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
+
+    val result = controller.getPrisonerNumbers("John", null)
+
+    assertThat(result).containsExactly("A1234AA")
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "")
+  }
+
+  @Test
+  fun `should allow when only lastname is supplied`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
+
+    val result = controller.getPrisonerNumbers(null, "Smith")
+
+    assertThat(result).containsExactly("A1234AA")
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("", "Smith")
+  }
+
+  @Test
+  fun `should reject when both name values are empty`() = runTest {
+    val exception = assertThrows<jakarta.validation.ValidationException> {
+      controller.getPrisonerNumbers("", "")
+    }
+
+    assertThat(exception).hasMessage("Either prisonerfirstname or prisonerlastname must be provided")
+  }
+
+  @Test
+  fun `should propagate exceptions from the upstream prisoner search client`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenThrow(RuntimeException("Upstream failure"))
+
+    val exception = assertThrows<RuntimeException> {
+      controller.getPrisonerNumbers("John", "Smith")
+    }
+
+    assertThat(exception).hasMessage("Upstream failure")
+  }
+}
+
+@WebMvcTest(controllers = [PrisonerController::class])
+@Import(ActivitiesManagementOrchestratorApiExceptionHandler::class)
+@ContextConfiguration(classes = [PrisonerController::class, ActivitiesManagementOrchestratorApiExceptionHandler::class])
+@WithMockAuthUser(roles = ["ROLE_PRISONER_SEARCH"])
+class PrisonerControllerWebTest : ControllerTestBase() {
+
+  @MockitoBean
+  private lateinit var prisonerSearchApiClient: PrisonerSearchApiClient
+
+  private lateinit var webTestClient: WebTestClient
+
+  @BeforeEach
+  fun setUp() {
+    webTestClient = MockMvcWebTestClient.bindTo(mockMvc).build()
+  }
+
+  @Test
+  fun `should return 200 with prisoner ids in json array`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
+
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.length()").isEqualTo(2)
+      .jsonPath("$[0]").isEqualTo("A1234AA")
+      .jsonPath("$[1]").isEqualTo("A1234AB")
+
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+  }
+
+  @Test
+  fun `should return 200 with empty prisoner id list`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
+
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.length()").isEqualTo(0)
+
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+  }
+
+  @Test
+  fun `should return 200 when only firstname is supplied`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
+
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John")
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$[0]").isEqualTo("A1234AA")
+
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "")
+  }
+
+  @Test
+  fun `should return 200 when only lastname is supplied`() = runTest {
+    whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
+
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerLastname=Smith")
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$[0]").isEqualTo("A1234AA")
+
+    verify(prisonerSearchApiClient).lookupPrisonerNumberByName("", "Smith")
+  }
+
+  @Test
+  fun `should return 400 when both firstname and lastname are empty`() {
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=&prisonerLastname=")
+      .exchange()
+      .expectStatus().isBadRequest
+
+    verifyNoInteractions(prisonerSearchApiClient)
+  }
+
+  @Test
+  fun `should return 400 when required lastname and firstname query parameter is missing`() {
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name")
+      .exchange()
+      .expectStatus().isBadRequest
+
+    verifyNoInteractions(prisonerSearchApiClient)
+  }
+
+  @Test
+  @WithAnonymousUser
+  fun `should return 401 when not authenticated`() {
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+      .exchange()
+      .expectStatus().isUnauthorized
+
+    verifyNoInteractions(prisonerSearchApiClient)
+  }
+
+  @Test
+  @WithMockAuthUser(roles = ["WRONG_ROLE"])
+  fun `should return 403 when user has incorrect role`() {
+    webTestClient.get()
+      .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
+      .exchange()
+      .expectStatus().isForbidden
+
+    verifyNoInteractions(prisonerSearchApiClient)
+  }
+}
