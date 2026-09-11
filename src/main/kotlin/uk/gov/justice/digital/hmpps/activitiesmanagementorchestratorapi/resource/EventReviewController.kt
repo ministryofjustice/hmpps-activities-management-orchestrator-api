@@ -24,7 +24,7 @@ import java.time.LocalDate
 class EventReviewController(
   private val eventReviewService: EventReviewService,
 ) {
-  @GetMapping(value = ["/prison/{prisonCode}"])
+  @GetMapping(value = ["/prison/{prisonCode}"], params = ["!prisonerNumber"])
   @PreAuthorize("hasAnyRole('ACTIVITY_HUB', 'ACTIVITY_ADMIN')")
   @ResponseBody
   @Operation(
@@ -60,10 +60,54 @@ class EventReviewController(
     @Parameter(description = "The date for which to retrieve events")
     date: LocalDate,
     @RequestParam(required = false)
+    @Parameter(description = "The prisoner number(s) to filter by")
+    prisonerNumbers: List<String>? = null,
+    @RequestParam(required = false)
+    @Parameter(description = "Whether to include acknowledged events")
+    includeAcknowledged: Boolean? = null,
+  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumbers, includeAcknowledged)
+
+  @GetMapping(value = ["/prison/{prisonCode}"], params = ["prisonerNumber"])
+  @PreAuthorize("hasAnyRole('ACTIVITY_HUB', 'ACTIVITY_ADMIN')")
+  @ResponseBody
+  @Operation(
+    summary = "Retrieve events for a prison to indicate that a change of circumstances affecting allocations has occurred",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "The event data has been returned successfully",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = EventReviewSearchResultsDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid Request",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  @Deprecated("use prisonerNumbers (a list) instead", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("getEventsForReview(prisonCode, date, prisonerNumber?.let(::listOf), includeAcknowledged)"))
+  suspend fun getEventsForReview(
+    @PathVariable
+    @Parameter(description = "The prison code")
+    prisonCode: String,
+    @RequestParam
+    @Parameter(description = "The date for which to retrieve events")
+    date: LocalDate,
+    @RequestParam(required = false)
     @Parameter(description = "The prisoner number to filter by")
     prisonerNumber: String? = null,
     @RequestParam(required = false)
     @Parameter(description = "Whether to include acknowledged events")
     includeAcknowledged: Boolean? = null,
-  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumber, includeAcknowledged)
+  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumber?.let { listOf(it) }, includeAcknowledged)
 }
