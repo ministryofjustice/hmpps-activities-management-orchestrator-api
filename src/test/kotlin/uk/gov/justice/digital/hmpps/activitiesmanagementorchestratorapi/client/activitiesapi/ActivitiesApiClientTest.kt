@@ -52,13 +52,14 @@ class ActivitiesApiClientTest {
   fun `should get events for review with all parameters`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
     val expectedResult = eventReviewSearchResultsFactory()
+    val prisonerNumbers = listOf("A1234AA", "B2345BB")
 
     activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
 
     val result = activitiesApiClient.getEventsDataForReview(
       prisonCode = "MDI",
       date = date,
-      prisonerNumber = "A1234AA",
+      prisonerNumbers = prisonerNumbers,
       includeAcknowledged = true,
       page = 0,
       size = 20,
@@ -70,7 +71,8 @@ class ActivitiesApiClientTest {
     activitiesApiMockServer.verify(
       getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
         .withQueryParam("date", equalTo("2026-08-01"))
-        .withQueryParam("prisonerNumber", equalTo("A1234AA"))
+        .withQueryParam("prisonerNumbers", equalTo("A1234AA"))
+        .withQueryParam("prisonerNumbers", equalTo("B2345BB"))
         .withQueryParam("includeAcknowledged", equalTo("true"))
         .withQueryParam("page", equalTo("0"))
         .withQueryParam("size", equalTo("20"))
@@ -106,7 +108,7 @@ class ActivitiesApiClientTest {
   }
 
   @Test
-  fun `should not include prisonerNumber query param when null`() = runTest {
+  fun `should not include prisonerNumbers query param when null`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
     val expectedResult = eventReviewSearchResultsFactory(
       content = emptyList(),
@@ -119,12 +121,12 @@ class ActivitiesApiClientTest {
     activitiesApiClient.getEventsDataForReview(
       prisonCode = "MDI",
       date = date,
-      prisonerNumber = null,
+      prisonerNumbers = null,
     )
 
     activitiesApiMockServer.verify(
       getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
-        .withoutQueryParam("prisonerNumber"),
+        .withoutQueryParam("prisonerNumbers"),
     )
   }
 

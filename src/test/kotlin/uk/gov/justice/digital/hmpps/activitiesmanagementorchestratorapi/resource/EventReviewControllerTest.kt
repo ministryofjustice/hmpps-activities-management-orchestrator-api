@@ -81,16 +81,16 @@ class EventReviewControllerTest : ControllerTestBase() {
   @Test
   fun `should return 200 with optional parameters`() {
     runTest {
-      whenever(eventReviewService.getEventsDataForReview(eq("MDI"), eq(date), eq("A1234AA"), eq(true))).thenReturn(
+      whenever(eventReviewService.getEventsDataForReview(eq("MDI"), eq(date), eq(listOf("A1234AA", "B2345BB")), eq(true))).thenReturn(
         expectedDto,
       )
 
       webTestClient.get()
-        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumber=A1234AA&includeAcknowledged=true")
+        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumbers=A1234AA&prisonerNumbers=B2345BB&includeAcknowledged=true")
         .exchange()
         .expectStatus().isOk
 
-      verify(eventReviewService).getEventsDataForReview(eq("MDI"), eq(date), eq("A1234AA"), eq(true))
+      verify(eventReviewService).getEventsDataForReview(eq("MDI"), eq(date), eq(listOf("A1234AA", "B2345BB")), eq(true))
     }
   }
 
