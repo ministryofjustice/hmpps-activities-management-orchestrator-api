@@ -49,17 +49,18 @@ class EventReviewServiceTest {
   @Test
   fun `should pass optional parameters to the API client`() = runTest {
     val apiResponse = eventReviewSearchResultsFactory()
+    val prisonerNumbers = listOf("A1234AA", "B2345BB")
 
     whenever(
-      activitiesApiClient.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true),
+      activitiesApiClient.getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true),
     ).thenReturn(apiResponse)
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true)
 
     assertThat(result.content).hasSize(1)
     assertThat(result.totalElements).isEqualTo(1L)
     assertThat(result.totalPages).isEqualTo(1)
-    verify(activitiesApiClient).getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true)
+    verify(activitiesApiClient).getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true)
   }
 
   @Test

@@ -13,7 +13,7 @@ class EventReviewService(
   suspend fun getEventsDataForReview(
     prisonCode: String,
     date: LocalDate,
-    prisonerNumber: String? = null,
+    prisonerNumbers: List<String>? = null,
     includeAcknowledged: Boolean? = null,
-  ): EventReviewSearchResultsDto = activitiesApiClient.getEventsDataForReview(prisonCode, date, prisonerNumber = prisonerNumber, includeAcknowledged = includeAcknowledged).toDto()
+  ): EventReviewSearchResultsDto = activitiesApiClient.getEventsDataForReview(prisonCode, date, prisonerNumbers = prisonerNumbers, includeAcknowledged = includeAcknowledged).toDto()
 }
