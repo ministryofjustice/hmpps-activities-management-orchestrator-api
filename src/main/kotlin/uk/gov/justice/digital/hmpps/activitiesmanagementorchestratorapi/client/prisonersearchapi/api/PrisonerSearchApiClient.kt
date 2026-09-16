@@ -28,7 +28,9 @@ class PrisonerSearchApiClient(
     require(batchSize in 1..1000) {
       "Batch size must be between 1 and 1000"
     }
+
     if (prisonerNumbers.isEmpty()) return emptyList()
+
     return prisonerNumbers.chunked(batchSize).flatMap { chunk ->
       prisonerSearchApiWebClient.post()
         .uri("/prisoner-search/prisoner-numbers")
@@ -40,6 +42,7 @@ class PrisonerSearchApiClient(
     }
   }
 
+// TODO: plan to use this when stitching together the prisoner event data with the prisoner details.
   suspend fun findByPrisonerNumbersMap(prisonerNumbers: List<String>): Map<String, PrisonerBasicDetails> = findByPrisonerNumbers(prisonerNumbers).associateBy { it.prisonerNumber }
 
   suspend fun lookupPrisonerNumberByName(firstName: String, lastName: String, batchSize: Int = 1000): List<String> {

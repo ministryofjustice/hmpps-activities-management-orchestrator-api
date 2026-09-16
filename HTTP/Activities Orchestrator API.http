@@ -9,7 +9,15 @@ Authorization: Bearer {{$auth.token("auth-token")}}
 Content-Type: application/json
 
 ### Get prisoner number by name
-GET {{ baseUrl }}/prisoner/prisoner-number-by-name?prisonerForename=JOE
+GET {{ baseUrl }}/prisoner/prisoner-number-by-name?prisonerFirstname=JOE
+Authorization: Bearer {{$auth.token("auth-token")}}
+Content-Type: application/json
+
+### Get prisoner details by numbers
+POST {{ baseUrl }}/prisoner/prisoner-details-by-numbers
 Authorization: Bearer <<bearerToken>>
 Content-Type: application/json
+
+{"prisonerNumbers": ["ABC123"]}
+
 
