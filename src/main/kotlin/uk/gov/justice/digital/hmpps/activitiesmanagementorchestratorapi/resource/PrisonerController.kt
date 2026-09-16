@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.p
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as OpenApiRequestBody
 
 @RestController
 @RequestMapping(value = ["/prisoner"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -98,8 +99,8 @@ class PrisonerController(
     ],
   )
   suspend fun getBasicPrisonerDetails(
+    @OpenApiRequestBody(required = true, description = "Prisoner numbers to filter by")
     @RequestBody
-    @Parameter(description = "Prisoner numbers to filter by")
     prisonerNumbers: PrisonerNumbers,
   ): List<PrisonerBasicDetails> {
     if (prisonerNumbers.prisonerNumbers.isEmpty()) {
