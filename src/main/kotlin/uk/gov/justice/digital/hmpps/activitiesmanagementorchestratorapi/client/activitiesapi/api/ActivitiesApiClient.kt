@@ -25,6 +25,7 @@ class ActivitiesApiClient(
     date: LocalDate,
     prisonerNumbers: List<String>? = null,
     includeAcknowledged: Boolean? = false,
+    filterEventTypes: List<String>? = listOf(),
     page: Int = 0,
     size: Int = 10,
     sortDirection: String = "ascending",
@@ -36,6 +37,7 @@ class ActivitiesApiClient(
         .queryParam("date", date)
         .queryParamIfPresent("prisonerNumbers", Optional.ofNullable(prisonerNumbers))
         .queryParamIfPresent("includeAcknowledged", Optional.ofNullable(includeAcknowledged))
+        .queryParamIfPresent("filterEventTypes", Optional.ofNullable(filterEventTypes))
         .queryParam("page", page)
         .queryParam("size", size)
         .queryParam("sortDirection", sortDirection)

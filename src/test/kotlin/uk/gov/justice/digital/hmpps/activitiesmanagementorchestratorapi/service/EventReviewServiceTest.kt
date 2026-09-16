@@ -28,7 +28,7 @@ class EventReviewServiceTest {
       totalElements = 2L,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
 
     val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
@@ -50,6 +50,7 @@ class EventReviewServiceTest {
   fun `should pass optional parameters to the API client`() = runTest {
     val apiResponse = eventReviewSearchResultsFactory()
     val prisonerNumbers = listOf("A1234AA", "B2345BB")
+    val filterEventTypes = listOf("prison-offender-events.prisoner.released", "prison-offender-events.prisoner.remanded")
 
     whenever(
       activitiesApiClient.getEventsDataForReview(
@@ -57,6 +58,7 @@ class EventReviewServiceTest {
         date,
         prisonerNumbers = prisonerNumbers,
         includeAcknowledged = true,
+        filterEventTypes = filterEventTypes,
         page = 2,
         size = 20,
         sortDirection = "descending",
@@ -68,6 +70,7 @@ class EventReviewServiceTest {
       date,
       prisonerNumbers = prisonerNumbers,
       includeAcknowledged = true,
+      filterEventTypes = filterEventTypes,
       page = 2,
       size = 20,
       sortDirection = "descending",
@@ -81,6 +84,7 @@ class EventReviewServiceTest {
       date,
       prisonerNumbers = prisonerNumbers,
       includeAcknowledged = true,
+      filterEventTypes = filterEventTypes,
       page = 2,
       size = 20,
       sortDirection = "descending",
@@ -95,7 +99,7 @@ class EventReviewServiceTest {
       totalPages = 0,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
 
     val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 

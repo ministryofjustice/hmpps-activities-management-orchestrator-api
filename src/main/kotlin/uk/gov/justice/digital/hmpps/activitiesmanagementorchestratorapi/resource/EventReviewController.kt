@@ -66,6 +66,9 @@ class EventReviewController(
     @Parameter(description = "Whether to include acknowledged events")
     includeAcknowledged: Boolean? = null,
     @RequestParam(required = false)
+    @Parameter(description = "The event type(s) to filter by")
+    filterEventTypes: List<String>? = listOf(),
+    @RequestParam(required = false)
     @Parameter(description = "The page number for pagination")
     page: Int = 0,
     @RequestParam(required = false)
@@ -74,5 +77,5 @@ class EventReviewController(
     @RequestParam(required = false)
     @Parameter(description = "The sort direction for pagination")
     sortDirection: String = "ascending",
-  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumbers, includeAcknowledged, page, size, sortDirection)
+  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumbers, includeAcknowledged, filterEventTypes, page, size, sortDirection)
 }

@@ -53,6 +53,7 @@ class ActivitiesApiClientTest {
     val date = LocalDate.of(2026, 8, 1)
     val expectedResult = eventReviewSearchResultsFactory()
     val prisonerNumbers = listOf("A1234AA", "B2345BB")
+    val filterEventTypes = listOf("prison-offender-events.prisoner.released", "prison-offender-events.prisoner.remanded")
 
     activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
 
@@ -61,6 +62,7 @@ class ActivitiesApiClientTest {
       date = date,
       prisonerNumbers = prisonerNumbers,
       includeAcknowledged = true,
+      filterEventTypes = filterEventTypes,
       page = 0,
       size = 20,
       sortDirection = "descending",
@@ -74,6 +76,8 @@ class ActivitiesApiClientTest {
         .withQueryParam("prisonerNumbers", equalTo("A1234AA"))
         .withQueryParam("prisonerNumbers", equalTo("B2345BB"))
         .withQueryParam("includeAcknowledged", equalTo("true"))
+        .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.released"))
+        .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.remanded"))
         .withQueryParam("page", equalTo("0"))
         .withQueryParam("size", equalTo("20"))
         .withQueryParam("sortDirection", equalTo("descending")),
@@ -150,6 +154,29 @@ class ActivitiesApiClientTest {
     activitiesApiMockServer.verify(
       getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
         .withoutQueryParam("includeAcknowledged"),
+    )
+  }
+
+  @Test
+  fun `should not include filterEventTypes query param when null`() = runTest {
+    val date = LocalDate.of(2026, 8, 1)
+    val expectedResult = eventReviewSearchResultsFactory(
+      content = emptyList(),
+      totalElements = 0,
+      totalPages = 0,
+    )
+
+    activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
+
+    activitiesApiClient.getEventsDataForReview(
+      prisonCode = "MDI",
+      date = date,
+      filterEventTypes = null,
+    )
+
+    activitiesApiMockServer.verify(
+      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+        .withoutQueryParam("filterEventTypes"),
     )
   }
 
