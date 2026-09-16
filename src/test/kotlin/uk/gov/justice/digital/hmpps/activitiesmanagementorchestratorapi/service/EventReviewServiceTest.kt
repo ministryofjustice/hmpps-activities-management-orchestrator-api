@@ -28,9 +28,9 @@ class EventReviewServiceTest {
       totalElements = 2L,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
     assertThat(result.content).hasSize(2)
     assertThat(result.totalElements).isEqualTo(2L)
@@ -52,15 +52,39 @@ class EventReviewServiceTest {
     val prisonerNumbers = listOf("A1234AA", "B2345BB")
 
     whenever(
-      activitiesApiClient.getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true),
+      activitiesApiClient.getEventsDataForReview(
+        "MDI",
+        date,
+        prisonerNumbers = prisonerNumbers,
+        includeAcknowledged = true,
+        page = 2,
+        size = 20,
+        sortDirection = "descending",
+      ),
     ).thenReturn(apiResponse)
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true)
+    val result = eventReviewService.getEventsDataForReview(
+      "MDI",
+      date,
+      prisonerNumbers = prisonerNumbers,
+      includeAcknowledged = true,
+      page = 2,
+      size = 20,
+      sortDirection = "descending",
+    )
 
     assertThat(result.content).hasSize(1)
     assertThat(result.totalElements).isEqualTo(1L)
     assertThat(result.totalPages).isEqualTo(1)
-    verify(activitiesApiClient).getEventsDataForReview("MDI", date, prisonerNumbers = prisonerNumbers, includeAcknowledged = true)
+    verify(activitiesApiClient).getEventsDataForReview(
+      "MDI",
+      date,
+      prisonerNumbers = prisonerNumbers,
+      includeAcknowledged = true,
+      page = 2,
+      size = 20,
+      sortDirection = "descending",
+    )
   }
 
   @Test
@@ -71,9 +95,9 @@ class EventReviewServiceTest {
       totalPages = 0,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(emptyResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
     assertThat(result.content).isEmpty()
     assertThat(result.totalElements).isZero()

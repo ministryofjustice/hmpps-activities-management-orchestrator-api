@@ -15,5 +15,8 @@ class EventReviewService(
     date: LocalDate,
     prisonerNumbers: List<String>? = null,
     includeAcknowledged: Boolean? = null,
-  ): EventReviewSearchResultsDto = activitiesApiClient.getEventsDataForReview(prisonCode, date, prisonerNumbers = prisonerNumbers, includeAcknowledged = includeAcknowledged).toDto()
+    page: Int,
+    size: Int,
+    sortDirection: String,
+  ): EventReviewSearchResultsDto = activitiesApiClient.getEventsDataForReview(prisonCode, date, prisonerNumbers = prisonerNumbers, includeAcknowledged = includeAcknowledged, page, size, sortDirection).toDto()
 }
