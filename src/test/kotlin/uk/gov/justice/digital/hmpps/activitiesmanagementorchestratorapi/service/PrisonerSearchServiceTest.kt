@@ -12,7 +12,7 @@ class PrisonerSearchServiceTest {
   private val prisonerSearchService = PrisonerSearchService(prisonerSearchApiClient)
 
   @Test
-  fun `should return basic prisoner details as map`() = runTest {
+  fun `should return basic prisoner details for a single prisoner`() = runTest {
     val prisonerNumber = "G4793VF"
     val prisoner = PrisonerSearchPrisonerFixture.instance(
       prisonerNumber = prisonerNumber,
@@ -21,20 +21,19 @@ class PrisonerSearchServiceTest {
       cellLocation = "2-1-007",
     )
 
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf(prisonerNumber))).thenReturn(mapOf(prisonerNumber to prisoner))
+    whenever(prisonerSearchApiClient.findByPrisonerNumbers(listOf(prisonerNumber))).thenReturn(listOf(prisoner))
 
     val result = prisonerSearchService.getBasicPrisonerDetails(listOf(prisonerNumber))
-    val prisonerSummary = result[prisonerNumber]
 
     assertThat(result).hasSize(1)
-    assertThat(prisonerSummary).isNotNull
-    assertThat(prisonerSummary!!.firstName).isEqualTo("JOE")
-    assertThat(prisonerSummary.lastName).isEqualTo("BLOGGS")
-    assertThat(prisonerSummary.cellLocation).isEqualTo("2-1-007")
+    assertThat(result[0]).isNotNull
+    assertThat(result[0].firstName).isEqualTo("JOE")
+    assertThat(result[0].lastName).isEqualTo("BLOGGS")
+    assertThat(result[0].cellLocation).isEqualTo("2-1-007")
   }
 
   @Test
-  fun `should return the basic details of multiple prisoners as a map`() = runTest {
+  fun `should return basic prisoner details for multiple prisoners`() = runTest {
     val prisonerNumbers = listOf("G4793VF", "A1234BC")
     val firstPrisoner = PrisonerSearchPrisonerFixture.instance(
       prisonerNumber = "G4793VF",
@@ -49,21 +48,18 @@ class PrisonerSearchServiceTest {
       cellLocation = "3-2-101",
     )
 
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(prisonerNumbers)).thenReturn(
-      mapOf(
-        "G4793VF" to firstPrisoner,
-        "A1234BC" to secondPrisoner,
-      ),
+    whenever(prisonerSearchApiClient.findByPrisonerNumbers(prisonerNumbers)).thenReturn(
+      listOf(firstPrisoner, secondPrisoner),
     )
 
     val result = prisonerSearchService.getBasicPrisonerDetails(prisonerNumbers)
 
     assertThat(result).hasSize(2)
-    assertThat(result["G4793VF"]!!.firstName).isEqualTo("JOE")
-    assertThat(result["G4793VF"]!!.lastName).isEqualTo("BLOGGS")
-    assertThat(result["G4793VF"]!!.cellLocation).isEqualTo("2-1-007")
-    assertThat(result["A1234BC"]!!.firstName).isEqualTo("JANE")
-    assertThat(result["A1234BC"]!!.lastName).isEqualTo("SMITH")
-    assertThat(result["A1234BC"]!!.cellLocation).isEqualTo("3-2-101")
+    assertThat(result[0].firstName).isEqualTo("JOE")
+    assertThat(result[0].lastName).isEqualTo("BLOGGS")
+    assertThat(result[0].cellLocation).isEqualTo("2-1-007")
+    assertThat(result[1].firstName).isEqualTo("JANE")
+    assertThat(result[1].lastName).isEqualTo("SMITH")
+    assertThat(result[1].cellLocation).isEqualTo("3-2-101")
   }
 }

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import jakarta.validation.ValidationException
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonerSearchService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import io.swagger.v3.oas.annotations.parameters.RequestBody as OpenApiRequestBody
 
@@ -25,7 +24,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as OpenApiRequestBod
 @RequestMapping(value = ["/prisoner"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @AuthApiResponses
 class PrisonerController(
-  private val prisonerSearchApiClient: PrisonerSearchApiClient,
+  private val prisonerSearchService: PrisonerSearchService,
 ) {
   @GetMapping(value = ["/prisoner-number-by-name"])
   @PreAuthorize("hasAnyRole('ROLE_PRISONER_SEARCH')")
@@ -62,13 +61,7 @@ class PrisonerController(
     @RequestParam(required = false)
     @Parameter(description = "The prisoner lastname")
     prisonerLastname: String?,
-  ): List<String> {
-    if (prisonerFirstname.isNullOrBlank() && prisonerLastname.isNullOrBlank()) {
-      throw ValidationException("Either prisonerfirstname or prisonerlastname must be provided")
-    }
-
-    return prisonerSearchApiClient.lookupPrisonerNumberByName(prisonerFirstname.orEmpty(), prisonerLastname.orEmpty())
-  }
+  ): List<String> = prisonerSearchService.lookupPrisonerNumberByName(prisonerFirstname.orEmpty(), prisonerLastname.orEmpty())
 
   @PostMapping(value = ["/prisoner-details-by-numbers"])
   @PreAuthorize("hasAnyRole('PRISONER_SEARCH')")
@@ -102,11 +95,5 @@ class PrisonerController(
     @OpenApiRequestBody(required = true, description = "Prisoner numbers to filter by")
     @RequestBody
     prisonerNumbers: PrisonerNumbers,
-  ): List<PrisonerBasicDetails> {
-    if (prisonerNumbers.prisonerNumbers.isEmpty()) {
-      throw ValidationException("Prisoner numbers must be provided")
-    }
-
-    return prisonerSearchApiClient.findByPrisonerNumbers(prisonerNumbers.prisonerNumbers)
-  }
+  ): List<PrisonerBasicDetails> = prisonerSearchService.getBasicPrisonerDetails(prisonerNumbers.prisonerNumbers)
 }

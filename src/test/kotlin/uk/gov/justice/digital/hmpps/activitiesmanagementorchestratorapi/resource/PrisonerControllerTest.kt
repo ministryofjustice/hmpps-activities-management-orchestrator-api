@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.resource
 
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -21,12 +22,14 @@ import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.p
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.config.ActivitiesManagementOrchestratorApiExceptionHandler
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonerSearchService
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 class PrisonerControllerTest {
 
   private val prisonerSearchApiClient: PrisonerSearchApiClient = mock()
-  private val controller = PrisonerController(prisonerSearchApiClient)
+  private val prisonerSearchService = PrisonerSearchService(prisonerSearchApiClient)
+  private val controller = PrisonerController(prisonerSearchService)
 
   @Test
   fun `should return prisoner ids for matching names`() = runTest {
@@ -98,7 +101,7 @@ class PrisonerControllerTest {
 class PrisonerControllerWebTest : ControllerTestBase() {
 
   @MockitoBean
-  private lateinit var prisonerSearchApiClient: PrisonerSearchApiClient
+  private lateinit var prisonerSearchService: PrisonerSearchService
 
   private lateinit var webTestClient: WebTestClient
 
@@ -111,7 +114,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
   inner class GetPrisonerNumberByName {
     @Test
     fun `should return 200 with prisoner ids in json array`() = runTest {
-      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
+      whenever(prisonerSearchService.lookupPrisonerNumberByName("John", "Smith")).thenReturn(listOf("A1234AA", "A1234AB"))
 
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
@@ -122,12 +125,12 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .jsonPath("$[0]").isEqualTo("A1234AA")
         .jsonPath("$[1]").isEqualTo("A1234AB")
 
-      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+      verify(prisonerSearchService).lookupPrisonerNumberByName("John", "Smith")
     }
 
     @Test
     fun `should return 200 with empty prisoner id list`() = runTest {
-      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
+      whenever(prisonerSearchService.lookupPrisonerNumberByName("John", "Smith")).thenReturn(emptyList())
 
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John&prisonerLastname=Smith")
@@ -136,12 +139,12 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .expectBody()
         .jsonPath("$.length()").isEqualTo(0)
 
-      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "Smith")
+      verify(prisonerSearchService).lookupPrisonerNumberByName("John", "Smith")
     }
 
     @Test
     fun `should return 200 when only firstname is supplied`() = runTest {
-      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
+      whenever(prisonerSearchService.lookupPrisonerNumberByName("John", "")).thenReturn(listOf("A1234AA"))
 
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=John")
@@ -150,12 +153,12 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .expectBody()
         .jsonPath("$[0]").isEqualTo("A1234AA")
 
-      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("John", "")
+      verify(prisonerSearchService).lookupPrisonerNumberByName("John", "")
     }
 
     @Test
     fun `should return 200 when only lastname is supplied`() = runTest {
-      whenever(prisonerSearchApiClient.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
+      whenever(prisonerSearchService.lookupPrisonerNumberByName("", "Smith")).thenReturn(listOf("A1234AA"))
 
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name?prisonerLastname=Smith")
@@ -164,27 +167,35 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .expectBody()
         .jsonPath("$[0]").isEqualTo("A1234AA")
 
-      verify(prisonerSearchApiClient).lookupPrisonerNumberByName("", "Smith")
+      verify(prisonerSearchService).lookupPrisonerNumberByName("", "Smith")
     }
 
     @Test
-    fun `should return 400 when both firstname and lastname are empty`() {
+    fun `should return 400 when both firstname and lastname are empty`() = runTest {
+      whenever(
+        prisonerSearchService.lookupPrisonerNumberByName("", ""),
+      ).thenThrow(ValidationException("Either prisonerfirstname or prisonerlastname must be provided"))
+
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name?prisonerFirstname=&prisonerLastname=")
         .exchange()
         .expectStatus().isBadRequest
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verify(prisonerSearchService).lookupPrisonerNumberByName("", "")
     }
 
     @Test
-    fun `should return 400 when required lastname and firstname query parameter is missing`() {
+    fun `should return 400 when required lastname and firstname query parameter is missing`() = runTest {
+      whenever(
+        prisonerSearchService.lookupPrisonerNumberByName("", ""),
+      ).thenThrow(ValidationException("Either prisonerfirstname or prisonerlastname must be provided"))
+
       webTestClient.get()
         .uri("/prisoner/prisoner-number-by-name")
         .exchange()
         .expectStatus().isBadRequest
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verify(prisonerSearchService).lookupPrisonerNumberByName("", "")
     }
 
     @Test
@@ -195,7 +206,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isUnauthorized
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchService)
     }
 
     @Test
@@ -206,7 +217,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isForbidden
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchService)
     }
   }
 
@@ -215,7 +226,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
     @Test
     fun `should return 200 with prisoner basic details by numbers`() = runTest {
       val request = PrisonerNumbers(listOf("A1234AA"))
-      whenever(prisonerSearchApiClient.findByPrisonerNumbers(request.prisonerNumbers)).thenReturn(
+      whenever(prisonerSearchService.getBasicPrisonerDetails(request.prisonerNumbers)).thenReturn(
         listOf(
           PrisonerBasicDetails(
             prisonerNumber = "A1234AA",
@@ -239,11 +250,15 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .jsonPath("$[0].lastName").isEqualTo("BLOGGS")
         .jsonPath("$[0].cellLocation").isEqualTo("2-1-007")
 
-      verify(prisonerSearchApiClient).findByPrisonerNumbers(request.prisonerNumbers)
+      verify(prisonerSearchService).getBasicPrisonerDetails(request.prisonerNumbers)
     }
 
     @Test
-    fun `should return 400 when prisoner numbers list is empty`() {
+    fun `should return 400 when prisoner numbers list is empty`() = runTest {
+      whenever(
+        prisonerSearchService.getBasicPrisonerDetails(emptyList()),
+      ).thenThrow(ValidationException("Prisoner numbers must be provided"))
+
       webTestClient.post()
         .uri("/prisoner/prisoner-details-by-numbers")
         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
@@ -251,7 +266,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isBadRequest
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verify(prisonerSearchService).getBasicPrisonerDetails(emptyList())
     }
 
     @Test
@@ -262,7 +277,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isBadRequest
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchService)
     }
 
     @Test
@@ -275,7 +290,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isUnauthorized
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchService)
     }
 
     @Test
@@ -288,7 +303,7 @@ class PrisonerControllerWebTest : ControllerTestBase() {
         .exchange()
         .expectStatus().isForbidden
 
-      verifyNoInteractions(prisonerSearchApiClient)
+      verifyNoInteractions(prisonerSearchService)
     }
   }
 }
