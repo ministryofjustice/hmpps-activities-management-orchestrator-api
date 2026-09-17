@@ -69,7 +69,6 @@ class EventReviewServiceTest {
     ).thenReturn(apiResponse)
     whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
 
-
     val result = eventReviewService.getEventsDataForReview(
       "MDI",
       date,
