@@ -34,9 +34,12 @@ class EventReviewService(
       )
       .toDto()
 
-    val prisonerDetails = prisonerSearchService.getBasicPrisonerDetailsMap(
-      events.content.mapNotNull { it.prisonerNumber }.distinct(),
-    )
+    val prisonerNumbersToLookup = events.content.mapNotNull { it.prisonerNumber }.distinct()
+    val prisonerDetails = if (prisonerNumbersToLookup.isEmpty()) {
+      emptyMap()
+    } else {
+      prisonerSearchService.getBasicPrisonerDetailsMap(prisonerNumbersToLookup)
+    }
 
 //   TODO: Look into how we are going to handle prisonerDetails/prisonerNumber returning null?
 //    Could the issues we occasionally see on the DLQ play into this?
