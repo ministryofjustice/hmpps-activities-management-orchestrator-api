@@ -30,10 +30,10 @@ class EventReviewServiceTest {
       totalElements = 2L,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
     whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
     assertThat(result.content).hasSize(2)
     assertThat(result.totalElements).isEqualTo(2L)
@@ -52,18 +52,48 @@ class EventReviewServiceTest {
   @Test
   fun `should pass optional parameters to the API client`() = runTest {
     val apiResponse = eventReviewSearchResultsFactory()
+    val prisonerNumbers = listOf("A1234AA", "B2345BB")
+    val filterEventTypes = listOf("prison-offender-events.prisoner.released", "prison-offender-events.prisoner.remanded")
 
     whenever(
-      activitiesApiClient.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true),
+      activitiesApiClient.getEventsDataForReview(
+        "MDI",
+        date,
+        prisonerNumbers = prisonerNumbers,
+        includeAcknowledged = true,
+        filterEventTypes = filterEventTypes,
+        page = 2,
+        size = 20,
+        sortDirection = "descending",
+      ),
     ).thenReturn(apiResponse)
     whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true)
+
+    val result = eventReviewService.getEventsDataForReview(
+      "MDI",
+      date,
+      prisonerNumbers = prisonerNumbers,
+      includeAcknowledged = true,
+      filterEventTypes = filterEventTypes,
+      page = 2,
+      size = 20,
+      sortDirection = "descending",
+    )
 
     assertThat(result.content).hasSize(1)
     assertThat(result.totalElements).isEqualTo(1L)
     assertThat(result.totalPages).isEqualTo(1)
-    verify(activitiesApiClient).getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true)
+    verify(activitiesApiClient).getEventsDataForReview(
+      "MDI",
+      date,
+      prisonerNumbers = prisonerNumbers,
+      includeAcknowledged = true,
+      filterEventTypes = filterEventTypes,
+      page = 2,
+      size = 20,
+      sortDirection = "descending",
+    )
   }
 
   @Test
@@ -74,10 +104,10 @@ class EventReviewServiceTest {
       totalPages = 0,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(emptyResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
     whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(emptyList())).thenReturn(emptyMap())
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
     assertThat(result.content).isEmpty()
     assertThat(result.totalElements).isZero()
@@ -94,7 +124,7 @@ class EventReviewServiceTest {
       totalElements = 2L,
     )
 
-    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
 
     val prisonerNumbers = listOf("G4793VF", "A1234AA")
     val firstPrisoner = PrisonerSearchPrisonerFixture.instance(
@@ -118,7 +148,7 @@ class EventReviewServiceTest {
       ),
     )
 
-    val result = eventReviewService.getEventsDataForReview("MDI", date, null, null)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")
 
     assertThat(result.content).isNotEmpty()
     assertThat(result.content[0].eventReviewId).isEqualTo(1L)

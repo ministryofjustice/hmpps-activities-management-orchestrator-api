@@ -15,19 +15,29 @@ class EventReviewService(
   suspend fun getEventsDataForReview(
     prisonCode: String,
     date: LocalDate,
-    prisonerNumber: String? = null,
+    prisonerNumbers: List<String>? = null,
     includeAcknowledged: Boolean? = null,
+    filterEventTypes: List<String>? = null,
+    page: Int,
+    size: Int,
+    sortDirection: String,
   ): EventReviewSearchResultsDto {
     val events = activitiesApiClient
-      .getEventsDataForReview(prisonCode, date, prisonerNumber = prisonerNumber, includeAcknowledged = includeAcknowledged)
+      .getEventsDataForReview(
+        prisonCode = prisonCode,
+        date = date,
+        prisonerNumbers = prisonerNumbers,
+        includeAcknowledged = includeAcknowledged,
+        filterEventTypes = filterEventTypes,
+        page = page,
+        size = size,
+        sortDirection = sortDirection,
+      )
       .toDto()
 
     val prisonerDetails = prisonerSearchApiClient.findByPrisonerNumbersMap(
       events.content.mapNotNull { it.prisonerNumber }.distinct(),
     )
-
-    print(events)
-    print(prisonerDetails)
 
     return EventReviewSearchResultsDto(
       content = events.content.map { event ->
