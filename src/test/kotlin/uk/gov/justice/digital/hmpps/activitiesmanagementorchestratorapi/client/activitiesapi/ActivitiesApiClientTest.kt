@@ -181,6 +181,52 @@ class ActivitiesApiClientTest {
   }
 
   @Test
+  fun `should not include prisonerNumbers query param when empty`() = runTest {
+    val date = LocalDate.of(2026, 8, 1)
+    val expectedResult = eventReviewSearchResultsFactory(
+      content = emptyList(),
+      totalElements = 0,
+      totalPages = 0,
+    )
+
+    activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
+
+    activitiesApiClient.getEventsDataForReview(
+      prisonCode = "MDI",
+      date = date,
+      prisonerNumbers = emptyList(),
+    )
+
+    activitiesApiMockServer.verify(
+      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+        .withoutQueryParam("prisonerNumbers"),
+    )
+  }
+
+  @Test
+  fun `should not include filterEventTypes query param when empty`() = runTest {
+    val date = LocalDate.of(2026, 8, 1)
+    val expectedResult = eventReviewSearchResultsFactory(
+      content = emptyList(),
+      totalElements = 0,
+      totalPages = 0,
+    )
+
+    activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
+
+    activitiesApiClient.getEventsDataForReview(
+      prisonCode = "MDI",
+      date = date,
+      filterEventTypes = emptyList(),
+    )
+
+    activitiesApiMockServer.verify(
+      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+        .withoutQueryParam("filterEventTypes"),
+    )
+  }
+
+  @Test
   fun `should throw exception on 404 response`() = runTest {
     activitiesApiMockServer.stubGetEventsForReviewNotFound("XXX", LocalDate.of(2026, 8, 1))
 
