@@ -35,9 +35,11 @@ class ActivitiesApiClient(
       uriBuilder
         .path("/event-review/prison/{prisonCode}")
         .queryParam("date", date)
-        .queryParamIfPresent("prisonerNumbers", Optional.ofNullable(prisonerNumbers))
-        .queryParamIfPresent("includeAcknowledged", Optional.ofNullable(includeAcknowledged))
-        .queryParamIfPresent("filterEventTypes", Optional.ofNullable(filterEventTypes))
+        .apply {
+          prisonerNumbers?.forEach { queryParam("prisonerNumbers", it) }
+          queryParamIfPresent("includeAcknowledged", Optional.ofNullable(includeAcknowledged))
+          filterEventTypes?.forEach { queryParam("filterEventTypes", it) }
+        }
         .queryParam("page", page)
         .queryParam("size", size)
         .queryParam("sortDirection", sortDirection)
