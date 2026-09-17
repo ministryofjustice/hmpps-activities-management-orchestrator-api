@@ -17,7 +17,6 @@ class EventReviewServiceTest {
   private val activitiesApiClient: ActivitiesApiClient = mock()
   private val prisonerSearchApiClient: PrisonerSearchApiClient = mock()
   private val eventReviewService = EventReviewService(activitiesApiClient, prisonerSearchApiClient)
-  private val prisonerSearchService = PrisonerSearchService(prisonerSearchApiClient)
 
   private val date = LocalDate.of(2026, 8, 1)
 
@@ -32,6 +31,7 @@ class EventReviewServiceTest {
     )
 
     whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
+    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
 
     val result = eventReviewService.getEventsDataForReview("MDI", date)
 
@@ -56,6 +56,7 @@ class EventReviewServiceTest {
     whenever(
       activitiesApiClient.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true),
     ).thenReturn(apiResponse)
+    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
 
     val result = eventReviewService.getEventsDataForReview("MDI", date, prisonerNumber = "A1234AA", includeAcknowledged = true)
 
@@ -74,6 +75,7 @@ class EventReviewServiceTest {
     )
 
     whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(emptyResponse)
+    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(emptyList())).thenReturn(emptyMap())
 
     val result = eventReviewService.getEventsDataForReview("MDI", date)
 
@@ -83,8 +85,7 @@ class EventReviewServiceTest {
   }
 
   @Test
-  fun `should return set of event data enriched with the prisoner's basic details`() = runTest {
-
+  fun `should return event data enriched with the prisoner's basic details`() = runTest {
     val apiResponse = eventReviewSearchResultsFactory(
       content = listOf(
         eventReviewFactory(prisonerNumber = "G4793VF"),
@@ -94,13 +95,6 @@ class EventReviewServiceTest {
     )
 
     whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null)).thenReturn(apiResponse)
-
-    val result = eventReviewService.getEventsDataForReview("MDI", date)
-
-    with(result.content[0]) {
-      assertThat(eventReviewId).isEqualTo(1L)
-      assertThat(eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
-    }
 
     val prisonerNumbers = listOf("G4793VF", "A1234AA")
     val firstPrisoner = PrisonerSearchPrisonerFixture.instance(
@@ -124,29 +118,21 @@ class EventReviewServiceTest {
       ),
     )
 
-    val result1 = prisonerSearchService.getBasicPrisonerDetailsMap(prisonerNumbers)
+    val result = eventReviewService.getEventsDataForReview("MDI", date, null, null)
 
-    assertThat(result1).isNotEmpty()
-    assertThat(result1["G4793VF"]?.prisonerNumber).isEqualTo("G4793VF")
-    assertThat(result1["G4793VF"]?.firstName).isEqualTo("JOE")
-    assertThat(result1["G4793VF"]?.lastName).isEqualTo("BLOGGS")
-    assertThat(result1["G4793VF"]?.cellLocation).isEqualTo("2-1-007")
+    assertThat(result.content).isNotEmpty()
+    assertThat(result.content[0].eventReviewId).isEqualTo(1L)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
+    assertThat(result.content[0].prisonerDetails?.prisonerNumber).isEqualTo("G4793VF")
+    assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOE")
+    assertThat(result.content[0].prisonerDetails?.lastName).isEqualTo("BLOGGS")
+    assertThat(result.content[0].prisonerDetails?.cellLocation).isEqualTo("2-1-007")
 
-    val result2 = eventReviewService.getEnrichedEventsDataForReview("MDI", date, null, null)
-
-    assertThat(result2.content).isNotEmpty()
-    assertThat(result2.content[0].eventReviewId).isEqualTo(1L)
-    assertThat(result2.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
-    assertThat(result2.content[0].prisoner?.prisonerNumber).isEqualTo("G4793VF")
-    assertThat(result2.content[0].prisoner?.firstName).isEqualTo("JOE")
-    assertThat(result2.content[0].prisoner?.lastName).isEqualTo("BLOGGS")
-    assertThat(result2.content[0].prisoner?.cellLocation).isEqualTo("2-1-007")
-
-    assertThat(result2.content[1].eventReviewId).isEqualTo(2L)
-    assertThat(result2.content[1].eventDescription).isEqualTo(EventReviewDescription.RELEASED)
-    assertThat(result2.content[1].prisoner?.prisonerNumber).isEqualTo("A1234AA")
-    assertThat(result2.content[1].prisoner?.firstName).isEqualTo("JANE")
-    assertThat(result2.content[1].prisoner?.lastName).isEqualTo("SMITH")
-    assertThat(result2.content[1].prisoner?.cellLocation).isEqualTo("1-2-003")
+    assertThat(result.content[1].eventReviewId).isEqualTo(2L)
+    assertThat(result.content[1].eventDescription).isEqualTo(EventReviewDescription.RELEASED)
+    assertThat(result.content[1].prisonerDetails?.prisonerNumber).isEqualTo("A1234AA")
+    assertThat(result.content[1].prisonerDetails?.firstName).isEqualTo("JANE")
+    assertThat(result.content[1].prisonerDetails?.lastName).isEqualTo("SMITH")
+    assertThat(result.content[1].prisonerDetails?.cellLocation).isEqualTo("1-2-003")
   }
 }

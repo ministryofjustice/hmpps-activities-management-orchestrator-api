@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
@@ -25,11 +26,27 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
     )
 
     activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
 
     val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
 
     assertThat(result.content).hasSize(2)
     assertThat(result.totalElements).isEqualTo(2L)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
+    assertThat(result.content[0].prisonerDetails?.prisonerNumber).isEqualTo("A1234AA")
+    assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOHN")
+    assertThat(result.content[0].prisonerDetails?.lastName).isEqualTo("SMITH")
+    assertThat(result.content[0].prisonerDetails?.cellLocation).isEqualTo("1-2-003")
   }
 
   @Test
@@ -41,6 +58,7 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
     )
 
     activitiesApi().stubGetEventsForReview("MDI", date, emptyResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(emptyList(), emptyList())
 
     val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
 
