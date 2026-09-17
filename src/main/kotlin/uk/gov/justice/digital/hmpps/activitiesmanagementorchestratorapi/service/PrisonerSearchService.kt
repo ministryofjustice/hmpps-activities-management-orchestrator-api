@@ -9,12 +9,12 @@ import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.p
 class PrisonerSearchService(
   private val prisonerSearchApiClient: PrisonerSearchApiClient,
 ) {
-  suspend fun lookupPrisonerNumberByName(prisonerFirstname: String, prisonerLastname: String): List<String> {
-    if (prisonerFirstname.isBlank() && prisonerLastname.isBlank()) {
-      throw ValidationException("Either prisonerfirstname or prisonerlastname must be provided")
+  suspend fun lookupPrisonerNumberByName(firstname: String, lastname: String): List<String> {
+    if (firstname.isBlank() && lastname.isBlank()) {
+      throw ValidationException("Either firstname or lastname must be provided")
     }
 
-    return prisonerSearchApiClient.lookupPrisonerNumberByName(prisonerFirstname, prisonerLastname)
+    return prisonerSearchApiClient.lookupPrisonerNumberByName(firstname, lastname)
   }
 
   suspend fun getBasicPrisonerDetails(prisonerNumbers: List<String>): List<PrisonerBasicDetails> {

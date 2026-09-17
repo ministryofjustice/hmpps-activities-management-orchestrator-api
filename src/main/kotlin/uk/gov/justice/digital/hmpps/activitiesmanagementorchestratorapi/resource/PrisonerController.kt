@@ -57,11 +57,11 @@ class PrisonerController(
   suspend fun getPrisonerNumbers(
     @RequestParam(required = false)
     @Parameter(description = "The prisoner firstname")
-    prisonerFirstname: String?,
+    firstname: String?,
     @RequestParam(required = false)
     @Parameter(description = "The prisoner lastname")
-    prisonerLastname: String?,
-  ): List<String> = prisonerSearchService.lookupPrisonerNumberByName(prisonerFirstname.orEmpty(), prisonerLastname.orEmpty())
+    lastname: String?,
+  ): List<String> = prisonerSearchService.lookupPrisonerNumberByName(firstname.orEmpty(), lastname.orEmpty())
 
   @PostMapping(value = ["/prisoner-details-by-numbers"])
   @PreAuthorize("hasAnyRole('PRISONER_SEARCH')")
