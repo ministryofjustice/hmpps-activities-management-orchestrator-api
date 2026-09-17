@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping.toDto
 import java.time.LocalDate
@@ -10,7 +9,7 @@ import java.time.LocalDate
 @Service
 class EventReviewService(
   private val activitiesApiClient: ActivitiesApiClient,
-  private val prisonerSearchApiClient: PrisonerSearchApiClient,
+  private val prisonerSearchService: PrisonerSearchService,
 ) {
   suspend fun getEventsDataForReview(
     prisonCode: String,
@@ -35,13 +34,16 @@ class EventReviewService(
       )
       .toDto()
 
-    val prisonerDetails = prisonerSearchApiClient.findByPrisonerNumbersMap(
+    val prisonerDetails = prisonerSearchService.getBasicPrisonerDetailsMap(
       events.content.mapNotNull { it.prisonerNumber }.distinct(),
     )
 
+//   TODO: Look into how we are going to handle prisonerDetails/prisonerNumber returning null?
+//    Could the issues we occasionally see on the DLQ play into this?
+
     return EventReviewSearchResultsDto(
       content = events.content.map { event ->
-        event.copy(prisonerDetails = prisonerDetails[event.prisonerNumber])
+        event.copy(prisonerDetails = event.prisonerNumber?.let { prisonerDetails[it] })
       },
       pageNumber = events.pageNumber,
       totalElements = events.totalElements,

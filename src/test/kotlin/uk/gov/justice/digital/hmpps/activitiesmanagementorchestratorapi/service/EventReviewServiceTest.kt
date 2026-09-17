@@ -8,15 +8,15 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.api.PrisonerSearchApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 import java.time.LocalDate
 
 class EventReviewServiceTest {
   private val activitiesApiClient: ActivitiesApiClient = mock()
-  private val prisonerSearchApiClient: PrisonerSearchApiClient = mock()
-  private val eventReviewService = EventReviewService(activitiesApiClient, prisonerSearchApiClient)
+  private val prisonerSearchService: PrisonerSearchService = mock()
+  private val eventReviewService = EventReviewService(activitiesApiClient, prisonerSearchService)
 
   private val date = LocalDate.of(2026, 8, 1)
 
@@ -31,7 +31,7 @@ class EventReviewServiceTest {
     )
 
     whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
 
     val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
@@ -67,7 +67,7 @@ class EventReviewServiceTest {
         sortDirection = "descending",
       ),
     ).thenReturn(apiResponse)
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(listOf("A1234AA"))).thenReturn(emptyMap())
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
 
     val result = eventReviewService.getEventsDataForReview(
       "MDI",
@@ -104,7 +104,7 @@ class EventReviewServiceTest {
     )
 
     whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(emptyList())).thenReturn(emptyMap())
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(emptyList())).thenReturn(emptyMap<String, PrisonerBasicDetails>())
 
     val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
 
@@ -140,7 +140,7 @@ class EventReviewServiceTest {
       cellLocation = "1-2-003",
     )
 
-    whenever(prisonerSearchApiClient.findByPrisonerNumbersMap(prisonerNumbers)).thenReturn(
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(prisonerNumbers)).thenReturn(
       mapOf(
         "G4793VF" to firstPrisoner,
         "A1234AA" to secondPrisoner,

@@ -42,6 +42,7 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
 
     assertThat(result.content).hasSize(2)
     assertThat(result.totalElements).isEqualTo(2L)
+    assertThat(result.content[0].prisonerNumber).isEqualTo("A1234AA")
     assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
     assertThat(result.content[0].prisonerDetails?.prisonerNumber).isEqualTo("A1234AA")
     assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOHN")
