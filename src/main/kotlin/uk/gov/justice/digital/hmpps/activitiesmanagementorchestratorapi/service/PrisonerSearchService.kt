@@ -24,4 +24,12 @@ class PrisonerSearchService(
 
     return prisonerSearchApiClient.findByPrisonerNumbers(prisonerNumbers)
   }
+
+  suspend fun getBasicPrisonerDetailsMap(prisonerNumbers: List<String>): Map<String, PrisonerBasicDetails> {
+    if (prisonerNumbers.isEmpty()) {
+      throw ValidationException("Prisoner numbers must be provided")
+    }
+
+    return prisonerSearchApiClient.findByPrisonerNumbersMap(prisonerNumbers)
+  }
 }
