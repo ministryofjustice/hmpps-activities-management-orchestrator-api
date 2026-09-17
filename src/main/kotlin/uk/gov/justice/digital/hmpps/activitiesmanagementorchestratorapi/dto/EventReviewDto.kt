@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import java.time.LocalDateTime
 
 @Schema(description = "Events Data for review")
@@ -55,4 +56,10 @@ data class EventReviewDto(
     example = "[\"KITCHEN AM\", \"GYM PM\"]",
   )
   val activeAllocations: List<String> = emptyList(),
+
+  @Schema(
+    description = "The prisoner details related to this event",
+    example = """{"prisonerNumber":"G9372GQ","firstName":"JOE","lastName":"BLOGGS","cellLocation":"A-1-001"}""",
+  )
+  val prisonerDetails: PrisonerBasicDetails? = null,
 )
