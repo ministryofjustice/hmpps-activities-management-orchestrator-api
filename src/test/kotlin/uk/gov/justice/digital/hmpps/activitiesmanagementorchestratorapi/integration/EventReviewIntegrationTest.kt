@@ -91,6 +91,9 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
       uriBuilder
         .path("/event-review/prison/{prisonCode}")
         .queryParam("date", date)
+        .queryParam("page", 0)
+        .queryParam("size", 10)
+        .queryParam("sortDirection", "ascending")
         .build(prisonCode)
     }
     .accept(MediaType.APPLICATION_JSON)

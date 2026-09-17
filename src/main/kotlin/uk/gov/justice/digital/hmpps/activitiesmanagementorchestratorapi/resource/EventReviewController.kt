@@ -60,10 +60,22 @@ class EventReviewController(
     @Parameter(description = "The date for which to retrieve events")
     date: LocalDate,
     @RequestParam(required = false)
-    @Parameter(description = "The prisoner number to filter by")
-    prisonerNumber: String? = null,
+    @Parameter(description = "The prisoner number(s) to filter by")
+    prisonerNumbers: List<String>? = null,
     @RequestParam(required = false)
     @Parameter(description = "Whether to include acknowledged events")
     includeAcknowledged: Boolean? = null,
-  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumber, includeAcknowledged)
+    @RequestParam(required = false)
+    @Parameter(description = "The event type(s) to filter by")
+    filterEventTypes: List<String>? = listOf(),
+    @RequestParam(required = false)
+    @Parameter(description = "The page number for pagination")
+    page: Int = 0,
+    @RequestParam(required = false)
+    @Parameter(description = "The page size for pagination")
+    size: Int = 10,
+    @RequestParam(required = false)
+    @Parameter(description = "The sort direction for pagination")
+    sortDirection: String = "ascending",
+  ): EventReviewSearchResultsDto = eventReviewService.getEventsDataForReview(prisonCode, date, prisonerNumbers, includeAcknowledged, filterEventTypes, page, size, sortDirection)
 }

@@ -23,8 +23,9 @@ class ActivitiesApiClient(
   suspend fun getEventsDataForReview(
     prisonCode: String,
     date: LocalDate,
-    prisonerNumber: String? = null,
+    prisonerNumbers: List<String>? = null,
     includeAcknowledged: Boolean? = false,
+    filterEventTypes: List<String>? = listOf(),
     page: Int = 0,
     size: Int = 10,
     sortDirection: String = "ascending",
@@ -34,8 +35,11 @@ class ActivitiesApiClient(
       uriBuilder
         .path("/event-review/prison/{prisonCode}")
         .queryParam("date", date)
-        .queryParamIfPresent("prisonerNumber", Optional.ofNullable(prisonerNumber))
-        .queryParamIfPresent("includeAcknowledged", Optional.ofNullable(includeAcknowledged))
+        .apply {
+          prisonerNumbers?.forEach { queryParam("prisonerNumbers", it) }
+          queryParamIfPresent("includeAcknowledged", Optional.ofNullable(includeAcknowledged))
+          filterEventTypes?.forEach { queryParam("filterEventTypes", it) }
+        }
         .queryParam("page", page)
         .queryParam("size", size)
         .queryParam("sortDirection", sortDirection)

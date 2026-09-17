@@ -59,9 +59,18 @@ class EventReviewControllerTest : ControllerTestBase() {
   @Test
   fun `should return 200 with event review data`() {
     runTest {
-      whenever(eventReviewService.getEventsDataForReview(eq("MDI"), eq(date), anyOrNull(), anyOrNull())).thenReturn(
-        expectedDto,
-      )
+      whenever(
+        eventReviewService.getEventsDataForReview(
+          eq("MDI"),
+          eq(date),
+          anyOrNull(),
+          anyOrNull(),
+          eq(listOf<String>()),
+          eq(0),
+          eq(10),
+          eq("ascending"),
+        ),
+      ).thenReturn(expectedDto)
       webTestClient.get().uri("/event-review/prison/MDI?date=2026-08-01")
         .exchange()
         .expectStatus().isOk
@@ -74,23 +83,50 @@ class EventReviewControllerTest : ControllerTestBase() {
         .jsonPath("$.content[0].prisonCode").isEqualTo("MDI")
         .jsonPath("$.content[0].prisonerNumber").isEqualTo("A1234AA")
 
-      verify(eventReviewService).getEventsDataForReview(eq("MDI"), eq(date), anyOrNull(), anyOrNull())
+      verify(eventReviewService).getEventsDataForReview(
+        eq("MDI"),
+        eq(date),
+        anyOrNull(),
+        anyOrNull(),
+        eq(listOf<String>()),
+        eq(0),
+        eq(10),
+        eq("ascending"),
+      )
     }
   }
 
   @Test
   fun `should return 200 with optional parameters`() {
     runTest {
-      whenever(eventReviewService.getEventsDataForReview(eq("MDI"), eq(date), eq("A1234AA"), eq(true))).thenReturn(
-        expectedDto,
-      )
+      whenever(
+        eventReviewService.getEventsDataForReview(
+          eq("MDI"),
+          eq(date),
+          eq(listOf("A1234AA", "B2345BB")),
+          eq(true),
+          eq(listOf("prison-offender-events.prisoner.released", "prison-offender-events.prisoner.remanded")),
+          eq(2),
+          eq(20),
+          eq("descending"),
+        ),
+      ).thenReturn(expectedDto)
 
       webTestClient.get()
-        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumber=A1234AA&includeAcknowledged=true")
+        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumbers=A1234AA&prisonerNumbers=B2345BB&includeAcknowledged=true&filterEventTypes=prison-offender-events.prisoner.released&filterEventTypes=prison-offender-events.prisoner.remanded&page=2&size=20&sortDirection=descending")
         .exchange()
         .expectStatus().isOk
 
-      verify(eventReviewService).getEventsDataForReview(eq("MDI"), eq(date), eq("A1234AA"), eq(true))
+      verify(eventReviewService).getEventsDataForReview(
+        eq("MDI"),
+        eq(date),
+        eq(listOf("A1234AA", "B2345BB")),
+        eq(true),
+        eq(listOf("prison-offender-events.prisoner.released", "prison-offender-events.prisoner.remanded")),
+        eq(2),
+        eq(20),
+        eq("descending"),
+      )
     }
   }
 
@@ -104,7 +140,18 @@ class EventReviewControllerTest : ControllerTestBase() {
     )
 
     runTest {
-      whenever(eventReviewService.getEventsDataForReview(eq("MDI"), eq(date), anyOrNull(), anyOrNull())).thenReturn(emptyDto)
+      whenever(
+        eventReviewService.getEventsDataForReview(
+          eq("MDI"),
+          eq(date),
+          anyOrNull(),
+          anyOrNull(),
+          eq(listOf<String>()),
+          eq(0),
+          eq(10),
+          eq("ascending"),
+        ),
+      ).thenReturn(emptyDto)
     }
 
     webTestClient.get().uri("/event-review/prison/MDI?date=2026-08-01")
