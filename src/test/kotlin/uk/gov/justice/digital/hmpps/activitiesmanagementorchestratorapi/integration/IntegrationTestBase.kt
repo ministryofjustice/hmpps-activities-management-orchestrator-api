@@ -36,6 +36,8 @@ abstract class IntegrationTestBase {
 
   protected fun activitiesApi() = ActivitiesApiExtension.activitiesApiServer
 
+  protected fun prisonerSearchApi() = prisonerSearchApiServer
+
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
     roles: List<String> = listOf(),
