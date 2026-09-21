@@ -113,7 +113,7 @@ class EventReviewControllerTest : ControllerTestBase() {
       ).thenReturn(expectedDto)
 
       webTestClient.get()
-        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumbers=A1234AA&prisonerNumbers=B2345BB&includeAcknowledged=true&filterEventTypes=prison-offender-events.prisoner.released&filterEventTypes=prison-offender-events.prisoner.remanded&page=2&size=20&sortDirection=descending")
+        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumbers=A1234AA&prisonerNumbers=B2345BB&acknowledged=true&filterEventTypes=prison-offender-events.prisoner.released&filterEventTypes=prison-offender-events.prisoner.remanded&page=2&size=20&sortDirection=descending")
         .exchange()
         .expectStatus().isOk
 

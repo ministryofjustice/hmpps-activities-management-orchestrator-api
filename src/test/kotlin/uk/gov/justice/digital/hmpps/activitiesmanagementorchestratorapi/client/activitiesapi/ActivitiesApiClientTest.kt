@@ -61,7 +61,7 @@ class ActivitiesApiClientTest {
       prisonCode = "MDI",
       date = date,
       prisonerNumbers = prisonerNumbers,
-      includeAcknowledged = true,
+      acknowledged = true,
       filterEventTypes = filterEventTypes,
       page = 0,
       size = 20,
@@ -75,7 +75,7 @@ class ActivitiesApiClientTest {
         .withQueryParam("date", equalTo("2026-08-01"))
         .withQueryParam("prisonerNumbers", equalTo("A1234AA"))
         .withQueryParam("prisonerNumbers", equalTo("B2345BB"))
-        .withQueryParam("includeAcknowledged", equalTo("true"))
+        .withQueryParam("acknowledged", equalTo("true"))
         .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.released"))
         .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.remanded"))
         .withQueryParam("page", equalTo("0"))
@@ -135,7 +135,7 @@ class ActivitiesApiClientTest {
   }
 
   @Test
-  fun `should not include includeAcknowledged query param when null`() = runTest {
+  fun `should not include acknowledged query param when acknowledged is null`() = runTest {
     val date = LocalDate.of(2026, 8, 1)
     val expectedResult = eventReviewSearchResultsFactory(
       content = emptyList(),
@@ -148,12 +148,12 @@ class ActivitiesApiClientTest {
     activitiesApiClient.getEventsDataForReview(
       prisonCode = "MDI",
       date = date,
-      includeAcknowledged = null,
+      acknowledged = null,
     )
 
     activitiesApiMockServer.verify(
       getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
-        .withoutQueryParam("includeAcknowledged"),
+        .withoutQueryParam("acknowledged"),
     )
   }
 
