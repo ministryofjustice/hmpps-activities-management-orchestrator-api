@@ -24,7 +24,7 @@ class ActivitiesApiClient(
     prisonCode: String,
     date: LocalDate,
     prisonerNumbers: List<String>? = null,
-    acknowledged: Boolean? = null,
+    filterAcknowledged: Boolean? = null,
     filterEventTypes: List<String>? = listOf(),
     page: Int = 0,
     size: Int = 10,
@@ -37,7 +37,7 @@ class ActivitiesApiClient(
         .queryParam("date", date)
         .apply {
           prisonerNumbers?.forEach { queryParam("prisonerNumbers", it) }
-          queryParamIfPresent("acknowledged", Optional.ofNullable(acknowledged))
+          queryParamIfPresent("filterAcknowledged", Optional.ofNullable(filterAcknowledged))
           filterEventTypes?.forEach { queryParam("filterEventTypes", it) }
         }
         .queryParam("page", page)
