@@ -17,6 +17,10 @@ prisoner-search:
   api:
     url: "http://localhost:8092"
 
+prisoner:
+  api:
+    url: "http://localhost:8093"
+
 springdoc:
   api-docs:
     enabled: true
