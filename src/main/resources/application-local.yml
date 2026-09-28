@@ -15,5 +15,5 @@ prisoner-search:
 
 prisoner:
   api:
-    url: https://prison-api-dev.prison.service.justice.gov.uk
+    url: "https://prison-api-dev.prison.service.justice.gov.uk"
     timeout: 10s
