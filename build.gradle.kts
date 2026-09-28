@@ -1,16 +1,16 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.10"
   kotlin("plugin.spring") version "2.4.20"
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
