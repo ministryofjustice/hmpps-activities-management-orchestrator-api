@@ -20,7 +20,8 @@ class WebClientConfiguration(
   @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @param:Value("\${api.timeout:20s}") val timeout: Duration,
   @param:Value("\${prisoner-search.api.timeout:10s}") private val shorterTimeout: Duration,
-) {
+  @param:Value("\${prisoner.api.timeout:20s}") private val prisonerTimeout: Duration,
+  ) {
 
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -51,6 +52,6 @@ class WebClientConfiguration(
 
   @Bean
   fun prisonerApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder
-    .authorisedWebClient(authorizedClientManager, "prisoner", prisonerApiUrl, timeout)
+    .authorisedWebClient(authorizedClientManager, "prisoner", prisonerApiUrl, prisonerTimeout)
     .also { log.info("WEB CLIENT CONFIG: creating prisoner api web client") }
 }
