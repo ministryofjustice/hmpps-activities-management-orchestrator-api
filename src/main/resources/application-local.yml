@@ -13,7 +13,7 @@ prisoner-search:
     url: "https://prisoner-search-dev.prison.service.justice.gov.uk"
     timeout: 10s
 
-prison:
+prisoner:
   api:
     url: https://prison-api-dev.prison.service.justice.gov.uk
     timeout: 10s
