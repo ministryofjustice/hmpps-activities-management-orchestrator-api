@@ -14,7 +14,7 @@ class PrisonerService(
   private val historyLength: Int = 2
 
   suspend fun getCurrentAndPreviousBedAssignment(bookingId: String): BedAssignmentSearchResults? {
-    if (bookingId.isEmpty()) {
+    if (bookingId.isBlank()) {
       throw ValidationException("Booking Id must be provided")
     }
 
