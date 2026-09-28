@@ -22,8 +22,8 @@ class PrisonerServiceTest {
     val bookingId = "12345"
     val expected = BedAssignmentSearchResults(
       content = listOf(
-        BedAssignment(bookingId = 12345, livingUnitId = 2, agencyId = "MDI"),
-        BedAssignment(bookingId = 12345, livingUnitId = 1, agencyId = "MDI"),
+        BedAssignment(description = "MDI-1-2"),
+        BedAssignment(description = "MDI-1-1"),
       ),
       pageNumber = 0,
       totalElements = 2,

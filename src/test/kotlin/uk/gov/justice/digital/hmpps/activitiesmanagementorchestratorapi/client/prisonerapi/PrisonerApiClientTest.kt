@@ -49,7 +49,7 @@ class PrisonerApiClientTest {
   fun `getBedAssignmentsHistoryByBookingId - success`() = runTest {
     val bookingId = "12345"
     val expected = BedAssignmentSearchResults(
-      content = listOf(BedAssignment(bookingId = 12345, livingUnitId = 1, agencyId = "MDI")),
+      content = listOf(BedAssignment(description = "MDI-1-1")),
       pageNumber = 0,
       totalElements = 1,
       totalPages = 1,
