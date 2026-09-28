@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi
+package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -13,13 +13,13 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.api.PrisonerApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model.BedAssignment
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerApiMockServer
 
-class PrisonerApiClientTest {
-  private lateinit var prisonerApiClient: PrisonerApiClient
+class PrisonApiClientTest {
+  private lateinit var prisonApiClient: PrisonApiClient
 
   companion object {
     @JvmField
@@ -42,7 +42,7 @@ class PrisonerApiClientTest {
   fun resetStubs() {
     prisonerApiMockServer.resetAll()
     val webClient = WebClient.create("http://localhost:${prisonerApiMockServer.port()}")
-    prisonerApiClient = PrisonerApiClient(webClient, RetryApiService(3, 250))
+    prisonApiClient = PrisonApiClient(webClient, RetryApiService(3, 250))
   }
 
   @Test
@@ -57,7 +57,7 @@ class PrisonerApiClientTest {
 
     prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingId(bookingId, 0, 1000, expected)
 
-    val result = prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
 
     assertThat(result).isEqualTo(expected)
   }
@@ -69,14 +69,14 @@ class PrisonerApiClientTest {
 
     prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingId(bookingId, 2, 10, expected)
 
-    val result = prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId, page = 2, size = 10)
+    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, page = 2, size = 10)
 
     assertThat(result).isEqualTo(expected)
   }
 
   @Test
   fun `getBedAssignmentsHistoryByBookingId - returns null and makes no call when bookingId is empty`() = runTest {
-    val result = prisonerApiClient.getBedAssignmentsHistoryByBookingId("")
+    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId("")
 
     assertThat(result).isNull()
     assertThat(prisonerApiMockServer.allServeEvents).isEmpty()
@@ -88,7 +88,7 @@ class PrisonerApiClientTest {
     prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingIdServerError(bookingId, 0, 1000)
 
     assertThrows<WebClientResponseException.InternalServerError> {
-      prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+      prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
     }
   }
 
@@ -102,7 +102,7 @@ class PrisonerApiClientTest {
     fun `will succeed if number of fails is less than maximum allowed`(): Unit = runTest {
       prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected)
 
-      val result = prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+      val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
 
       assertThat(result).isEqualTo(expected)
     }
@@ -112,7 +112,7 @@ class PrisonerApiClientTest {
       prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected, 3)
 
       assertThrows<WebClientRequestException> {
-        prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+        prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
       }
     }
   }

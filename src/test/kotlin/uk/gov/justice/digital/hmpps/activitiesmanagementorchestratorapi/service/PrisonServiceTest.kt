@@ -9,13 +9,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.api.PrisonerApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model.BedAssignment
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 
-class PrisonerServiceTest {
-  private val prisonerApiClient: PrisonerApiClient = mock()
-  private val prisonerService = PrisonerService(prisonerApiClient)
+class PrisonServiceTest {
+  private val prisonApiClient: PrisonApiClient = mock()
+  private val prisonService = PrisonService(prisonApiClient)
 
   @Test
   fun `should return the current and previous bed assignments for a booking id`() = runTest {
@@ -30,30 +30,30 @@ class PrisonerServiceTest {
       totalPages = 1,
     )
 
-    whenever(prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(expected)
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(expected)
 
-    val result = prisonerService.getCurrentAndPreviousBedAssignment(bookingId)
+    val result = prisonService.getCurrentAndPreviousBedAssignment(bookingId)
 
     assertThat(result).isEqualTo(expected)
-    verify(prisonerApiClient).getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)
+    verify(prisonApiClient).getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)
   }
 
   @Test
   fun `should request the first page using the configured history length as the page size`() = runTest {
     val bookingId = "12345"
-    whenever(prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(null)
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(null)
 
-    prisonerService.getCurrentAndPreviousBedAssignment(bookingId)
+    prisonService.getCurrentAndPreviousBedAssignment(bookingId)
 
-    verify(prisonerApiClient).getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)
+    verify(prisonApiClient).getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)
   }
 
   @Test
   fun `should return null when no bed assignment history is found`() = runTest {
     val bookingId = "12345"
-    whenever(prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(null)
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenReturn(null)
 
-    val result = prisonerService.getCurrentAndPreviousBedAssignment(bookingId)
+    val result = prisonService.getCurrentAndPreviousBedAssignment(bookingId)
 
     assertThat(result).isNull()
   }
@@ -61,20 +61,20 @@ class PrisonerServiceTest {
   @Test
   fun `should throw validation exception when booking id is empty`() = runTest {
     val exception = assertThrows<ValidationException> {
-      prisonerService.getCurrentAndPreviousBedAssignment("")
+      prisonService.getCurrentAndPreviousBedAssignment("")
     }
 
     assertThat(exception).hasMessage("Booking Id must be provided")
-    verifyNoInteractions(prisonerApiClient)
+    verifyNoInteractions(prisonApiClient)
   }
 
   @Test
   fun `should propagate exceptions from the upstream prisoner api client`() = runTest {
     val bookingId = "12345"
-    whenever(prisonerApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenThrow(RuntimeException("Upstream failure"))
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenThrow(RuntimeException("Upstream failure"))
 
     val exception = assertThrows<RuntimeException> {
-      prisonerService.getCurrentAndPreviousBedAssignment(bookingId)
+      prisonService.getCurrentAndPreviousBedAssignment(bookingId)
     }
 
     assertThat(exception).hasMessage("Upstream failure")

@@ -48,10 +48,10 @@ class WebClientConfiguration(
     .also { log.info("WEB CLIENT CONFIG: creating prisoner search api web client") }
 
   @Bean
-  fun prisonerApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonerApiUrl, healthTimeout)
+  fun prisonApiHealthWebClient(builder: WebClient.Builder) = builder.healthWebClient(prisonerApiUrl, healthTimeout)
 
   @Bean
-  fun prisonerApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder
+  fun prisonApiWebClient(authorizedClientManager: OAuth2AuthorizedClientManager, builder: WebClient.Builder) = builder
     .authorisedWebClient(authorizedClientManager, "prisoner", prisonerApiUrl, prisonerTimeout)
     .also { log.info("WEB CLIENT CONFIG: creating prisoner api web client") }
 }

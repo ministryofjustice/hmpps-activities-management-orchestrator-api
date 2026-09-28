@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integra
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 
 class PrisonerApiMockServer : MockServer(8093) {
 

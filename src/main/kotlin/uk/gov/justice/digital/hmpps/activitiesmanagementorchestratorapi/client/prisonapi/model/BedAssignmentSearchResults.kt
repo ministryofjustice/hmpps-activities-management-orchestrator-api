@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonerapi.model
+package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
