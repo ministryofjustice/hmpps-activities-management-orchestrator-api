@@ -16,11 +16,11 @@ class WebClientConfiguration(
   @param:Value("\${hmpps.auth.url}") val hmppsAuthBaseUrl: String,
   @param:Value("\${activities.api.url}") val activitiesApiBaseUrl: String,
   @param:Value("\${prisoner-search.api.url}") private val prisonerSearchApiUrl: String,
-  @param:Value("\${prisoner.api.url}") private val prisonerApiUrl: String,
+  @param:Value("\${prison.api.url}") private val prisonerApiUrl: String,
   @param:Value("\${api.health-timeout:2s}") val healthTimeout: Duration,
   @param:Value("\${api.timeout:20s}") val timeout: Duration,
   @param:Value("\${prisoner-search.api.timeout:10s}") private val shorterTimeout: Duration,
-  @param:Value("\${prisoner.api.timeout:20s}") private val prisonerTimeout: Duration,
+  @param:Value("\${prison.api.timeout:20s}") private val prisonerTimeout: Duration,
 ) {
 
   companion object {

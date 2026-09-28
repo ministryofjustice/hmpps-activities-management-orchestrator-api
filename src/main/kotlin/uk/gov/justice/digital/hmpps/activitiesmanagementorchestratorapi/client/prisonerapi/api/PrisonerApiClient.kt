@@ -16,8 +16,8 @@ inline fun <reified T : Any> typeReference() = object : ParameterizedTypeReferen
 class PrisonerApiClient(
   private val prisonerApiWebClient: WebClient,
   retryApiService: RetryApiService,
-  @Value("\${prisoner.api.retry.max-retries:2}") private val maxRetryAttempts: Long = 2,
-  @Value("\${prisoner.api.retry.backoff-millis:250}") private val backoffMillis: Long = 250,
+  @Value("\${prison.api.retry.max-retries:2}") private val maxRetryAttempts: Long = 2,
+  @Value("\${prison.api.retry.backoff-millis:250}") private val backoffMillis: Long = 250,
 ) {
   private val backoffSpec = retryApiService.getBackoffSpec(maxRetryAttempts, backoffMillis)
 
