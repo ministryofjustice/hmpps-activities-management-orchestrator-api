@@ -17,7 +17,7 @@ prisoner-search:
   api:
     url: "http://localhost:8092"
 
-prisoner:
+prison:
   api:
     url: "http://localhost:8093"
 
