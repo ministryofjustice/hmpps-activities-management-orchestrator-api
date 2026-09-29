@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
@@ -23,7 +25,7 @@ class PrisonController(
   private val prisonService: PrisonService,
 ) {
   @GetMapping(value = ["/cell-location-history"])
-  @PreAuthorize("hasAnyRole('PRISONER_SEARCH')")
+  @PreAuthorize("hasRole('VIEW_PRISONER_DATA')")
   @ResponseBody
   @Operation(
     summary = "Retrieve basic prisoner details by prisoner numbers",
@@ -51,8 +53,8 @@ class PrisonController(
     ],
   )
   suspend fun getCellLocationHistory(
-    @OpenApiRequestBody(required = true, description = "Booking identifier")
-    @RequestBody
+    @RequestParam(required = true)
+    @Parameter(description = "Booking identiier")
     bookingId: String,
   ): List<BedAssignment>? = prisonService.getCurrentAndPreviousBedAssignment(bookingId = bookingId)?.content
 }
