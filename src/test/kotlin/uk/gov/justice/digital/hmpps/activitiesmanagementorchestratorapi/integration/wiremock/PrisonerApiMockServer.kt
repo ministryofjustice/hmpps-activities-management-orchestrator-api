@@ -3,6 +3,10 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integra
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import org.junit.jupiter.api.extension.AfterAllCallback
+import org.junit.jupiter.api.extension.BeforeAllCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 
 class PrisonerApiMockServer : MockServer(8093) {
@@ -58,5 +62,27 @@ class PrisonerApiMockServer : MockServer(8093) {
             .withStatus(200),
         ),
     )
+  }
+}
+
+class PrisonApiExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
+  companion object {
+    @JvmField
+    val prisonApiServer = PrisonerApiMockServer()
+  }
+
+  override fun beforeAll(context: ExtensionContext) {
+    prisonApiServer.start()
+  }
+
+  override fun beforeEach(context: ExtensionContext) {
+    prisonApiServer.resetAll()
+  }
+
+  override fun afterAll(context: ExtensionContext) {
+    prisonApiServer.stop()
   }
 }

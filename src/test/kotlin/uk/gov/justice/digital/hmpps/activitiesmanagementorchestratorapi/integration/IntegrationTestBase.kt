@@ -12,6 +12,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.ActivitiesApiExtension
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.HmppsAuthApiExtension
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonApiExtension
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonApiExtension.Companion.prisonApiServer
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiExtension
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerSearchApiExtension.Companion.prisonerSearchApiServer
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -22,6 +24,7 @@ internal const val USERNAME = "TestUser"
   HmppsAuthApiExtension::class,
   ActivitiesApiExtension::class,
   PrisonerSearchApiExtension::class,
+  PrisonApiExtension::class,
 )
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -37,6 +40,8 @@ abstract class IntegrationTestBase {
   protected fun activitiesApi() = ActivitiesApiExtension.activitiesApiServer
 
   protected fun prisonerSearchApi() = prisonerSearchApiServer
+
+  protected fun prisonApi() = prisonApiServer
 
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
