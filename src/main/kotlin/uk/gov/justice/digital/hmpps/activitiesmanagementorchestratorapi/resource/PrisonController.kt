@@ -26,7 +26,7 @@ class PrisonController(
   @PreAuthorize("hasRole('VIEW_PRISONER_DATA')")
   @ResponseBody
   @Operation(
-    summary = "Retrieve basic prisoner details by prisoner numbers",
+    summary = "Retrieve cell location history for a booking ID",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -52,7 +52,7 @@ class PrisonController(
   )
   suspend fun getCellLocationHistory(
     @RequestParam(required = true)
-    @Parameter(description = "Booking identiier")
+    @Parameter(description = "Booking identifier")
     bookingId: String,
   ): CellLocationResultsDto? = prisonService.getCurrentAndPreviousBedAssignment(bookingId = bookingId)
     ?.content
