@@ -69,6 +69,16 @@ class PrisonServiceTest {
   }
 
   @Test
+  fun `should throw validation exception when booking id is not a valid number`() = runTest {
+    val exception = assertThrows<ValidationException> {
+      prisonService.getCurrentAndPreviousBedAssignment("abc123")
+    }
+
+    assertThat(exception).hasMessage("Booking ID must be a valid number")
+    verifyNoInteractions(prisonApiClient)
+  }
+
+  @Test
   fun `should propagate exceptions from the upstream prisoner api client`() = runTest {
     val bookingId = "12345"
     whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenThrow(RuntimeException("Upstream failure"))

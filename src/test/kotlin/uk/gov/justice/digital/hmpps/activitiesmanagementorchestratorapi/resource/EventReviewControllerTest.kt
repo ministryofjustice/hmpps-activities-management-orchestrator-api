@@ -131,6 +131,40 @@ class EventReviewControllerTest : ControllerTestBase() {
   }
 
   @Test
+  fun `should pass a single prisoner number as a list`() {
+    runTest {
+      whenever(
+        eventReviewService.getEventsDataForReview(
+          eq("MDI"),
+          eq(date),
+          eq(listOf("A1234AA")),
+          anyOrNull(),
+          eq(listOf<String>()),
+          eq(0),
+          eq(10),
+          eq("ascending"),
+        ),
+      ).thenReturn(expectedDto)
+
+      webTestClient.get()
+        .uri("/event-review/prison/MDI?date=2026-08-01&prisonerNumbers=A1234AA")
+        .exchange()
+        .expectStatus().isOk
+
+      verify(eventReviewService).getEventsDataForReview(
+        eq("MDI"),
+        eq(date),
+        eq(listOf("A1234AA")),
+        anyOrNull(),
+        eq(listOf<String>()),
+        eq(0),
+        eq(10),
+        eq("ascending"),
+      )
+    }
+  }
+
+  @Test
   fun `should return 200 with empty results`() {
     val emptyDto = EventReviewSearchResultsDto(
       content = emptyList(),
