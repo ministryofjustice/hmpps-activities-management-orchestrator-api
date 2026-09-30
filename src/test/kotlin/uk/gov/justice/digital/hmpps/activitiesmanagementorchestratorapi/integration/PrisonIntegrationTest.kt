@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.CellLocationResultsDto
@@ -48,6 +47,11 @@ class PrisonIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return 400 when booking id is not a valid number`() {
+    getCellLocationHistory("abc123").fail(HttpStatus.BAD_REQUEST)
+  }
+
+  @Test
   fun `should return 401 when not authenticated`() {
     getCellLocationHistory("12345", includeBearerAuth = false).fail(HttpStatus.UNAUTHORIZED)
   }
@@ -67,12 +71,10 @@ class PrisonIntegrationTest : IntegrationTestBase() {
 
   private fun getCellLocationHistory(
     bookingId: String,
-    roles: List<String> = listOf("PRISONER_SEARCH"),
+    roles: List<String> = listOf("VIEW_PRISONER_DATA"),
     includeBearerAuth: Boolean = true,
   ) = webTestClient.method(HttpMethod.GET)
-    .uri("/prison/cell-location-history")
-    .contentType(MediaType.TEXT_PLAIN)
-    .bodyValue(bookingId)
+    .uri { it.path("/prison/cell-location-history").queryParam("bookingId", bookingId).build() }
     .headers(if (includeBearerAuth) setAuthorisation(roles = roles) else noAuthorisation())
     .exchange()
 }

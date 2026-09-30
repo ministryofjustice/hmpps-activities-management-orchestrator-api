@@ -13,7 +13,6 @@ import org.mockito.kotlin.whenever
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -85,7 +84,7 @@ class PrisonControllerTest {
 @WebMvcTest(controllers = [PrisonController::class])
 @Import(ActivitiesManagementOrchestratorApiExceptionHandler::class)
 @ContextConfiguration(classes = [PrisonController::class, ActivitiesManagementOrchestratorApiExceptionHandler::class])
-@WithMockAuthUser(roles = ["ROLE_PRISONER_SEARCH"])
+@WithMockAuthUser(roles = ["ROLE_VIEW_PRISONER_DATA"])
 class PrisonControllerWebTest : ControllerTestBase() {
 
   @MockitoBean
@@ -110,9 +109,7 @@ class PrisonControllerWebTest : ControllerTestBase() {
     whenever(prisonService.getCurrentAndPreviousBedAssignment("12345")).thenReturn(expected)
 
     webTestClient.method(HttpMethod.GET)
-      .uri("/prison/cell-location-history")
-      .contentType(MediaType.TEXT_PLAIN)
-      .bodyValue("12345")
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "12345").build() }
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -128,9 +125,7 @@ class PrisonControllerWebTest : ControllerTestBase() {
     whenever(prisonService.getCurrentAndPreviousBedAssignment("12345")).thenReturn(null)
 
     webTestClient.method(HttpMethod.GET)
-      .uri("/prison/cell-location-history")
-      .contentType(MediaType.TEXT_PLAIN)
-      .bodyValue("12345")
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "12345").build() }
       .exchange()
       .expectStatus().isOk
       .expectBody().isEmpty
@@ -140,10 +135,22 @@ class PrisonControllerWebTest : ControllerTestBase() {
 
   @Test
   fun `should return 400 when booking id is blank`() = runTest {
+    whenever(prisonService.getCurrentAndPreviousBedAssignment(""))
+      .thenThrow(ValidationException("Booking Id must be provided"))
+
     webTestClient.method(HttpMethod.GET)
-      .uri("/prison/cell-location-history")
-      .contentType(MediaType.TEXT_PLAIN)
-      .bodyValue("")
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "").build() }
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
+  fun `should return 400 when booking id is not a valid number`() = runTest {
+    whenever(prisonService.getCurrentAndPreviousBedAssignment("abc123"))
+      .thenThrow(ValidationException("Booking ID must be a valid number"))
+
+    webTestClient.method(HttpMethod.GET)
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "abc123").build() }
       .exchange()
       .expectStatus().isBadRequest
   }
@@ -152,9 +159,7 @@ class PrisonControllerWebTest : ControllerTestBase() {
   @WithAnonymousUser
   fun `should return 401 when not authenticated`() {
     webTestClient.method(HttpMethod.GET)
-      .uri("/prison/cell-location-history")
-      .contentType(MediaType.TEXT_PLAIN)
-      .bodyValue("12345")
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "12345").build() }
       .exchange()
       .expectStatus().isUnauthorized
 
@@ -165,9 +170,7 @@ class PrisonControllerWebTest : ControllerTestBase() {
   @WithMockAuthUser(roles = ["WRONG_ROLE"])
   fun `should return 403 when user has incorrect role`() {
     webTestClient.method(HttpMethod.GET)
-      .uri("/prison/cell-location-history")
-      .contentType(MediaType.TEXT_PLAIN)
-      .bodyValue("12345")
+      .uri { it.path("/prison/cell-location-history").queryParam("bookingId", "12345").build() }
       .exchange()
       .expectStatus().isForbidden
 
