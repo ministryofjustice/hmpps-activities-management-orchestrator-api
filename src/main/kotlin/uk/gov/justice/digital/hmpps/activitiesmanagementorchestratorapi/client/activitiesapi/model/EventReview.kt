@@ -15,6 +15,10 @@ data class EventReview(
   val acknowledgedBy: String? = null,
   val eventDescription: EventReviewDescription? = null,
   val activeAllocations: List<String> = emptyList(),
+  val alertDetails: AlertsUpdatedDetails? = null,
+  val incentiveDetails: IncentiveLevelsChangedDetails? = null,
+  val prisonerUpdatedDetails: PrisonerUpdatedDetails? = null,
+  val mergeDetails: OffenderMergedDetails? = null,
 )
 
 enum class EventReviewDescription {

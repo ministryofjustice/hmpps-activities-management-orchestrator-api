@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
@@ -43,11 +44,76 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
     assertThat(result.content).hasSize(2)
     assertThat(result.totalElements).isEqualTo(2L)
     assertThat(result.content[0].prisonerNumber).isEqualTo("A1234AA")
-    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.RELEASED)
     assertThat(result.content[0].prisonerDetails?.prisonerNumber).isEqualTo("A1234AA")
     assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOHN")
     assertThat(result.content[0].prisonerDetails?.lastName).isEqualTo("SMITH")
     assertThat(result.content[0].prisonerDetails?.cellLocation).isEqualTo("1-2-003")
+  }
+
+  @Test
+  fun `should return 200 with alertDetails when populated`() {
+    val alertDetails = AlertsUpdatedDetails(
+      alertsAdded = listOf("A1", "A2"),
+      alertsClosed = listOf("C1"),
+    )
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(eventReviewFactory(alertDetails = alertDetails)),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].alertDetails).isEqualTo(alertDetails)
+    assertThat(result.content[0].alertDetails?.alertsAdded).containsExactly("A1", "A2")
+    assertThat(result.content[0].alertDetails?.alertsClosed).containsExactly("C1")
+  }
+
+  @Test
+  fun `should omit alertDetails from response when null`() {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(eventReviewFactory(alertDetails = null)),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    webTestClient.get()
+      .uri { uriBuilder ->
+        uriBuilder
+          .path("/event-review/prison/{prisonCode}")
+          .queryParam("date", date)
+          .build("MDI")
+      }
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ACTIVITY_HUB", "ACTIVITY_ADMIN")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.content[0].alertDetails").doesNotExist()
   }
 
   @Test

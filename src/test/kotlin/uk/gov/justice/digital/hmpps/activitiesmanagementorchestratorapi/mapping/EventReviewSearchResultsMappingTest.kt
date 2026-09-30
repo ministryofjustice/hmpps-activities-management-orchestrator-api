@@ -35,5 +35,9 @@ class EventReviewSearchResultsMappingTest {
     assertThat(dto.acknowledgedBy).isEqualTo(eventReview.acknowledgedBy)
     assertThat(dto.eventDescription).isEqualTo(eventReview.eventDescription)
     assertThat(dto.activeAllocations).isEqualTo(eventReview.activeAllocations)
+    assertThat(dto.alertDetails).isEqualTo(eventReview.alertDetails)
+    assertThat(dto.incentiveDetails).isEqualTo(eventReview.incentiveDetails)
+    assertThat(dto.prisonerUpdatedDetails).isEqualTo(eventReview.prisonerUpdatedDetails)
+    assertThat(dto.mergeDetails).isEqualTo(eventReview.mergeDetails)
   }
 }

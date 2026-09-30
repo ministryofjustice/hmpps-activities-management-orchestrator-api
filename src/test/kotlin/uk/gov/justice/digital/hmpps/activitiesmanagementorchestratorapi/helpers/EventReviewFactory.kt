@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers
 
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReview
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.IncentiveLevelsChangedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.OffenderMergedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import java.time.LocalDateTime
 
 internal fun eventReviewFactory(
@@ -15,8 +19,12 @@ internal fun eventReviewFactory(
   eventData: String? = "event data",
   acknowledgedTime: LocalDateTime? = LocalDateTime.of(2026, 8, 12, 20, 0),
   acknowledgedBy: String? = "Staff",
-  eventDescription: EventReviewDescription? = EventReviewDescription.TEMPORARY_RELEASE,
+  eventDescription: EventReviewDescription? = EventReviewDescription.RELEASED,
   activeAllocations: List<String> = listOf("Test Allocation 1", "Test Allocation 2"),
+  alertDetails: AlertsUpdatedDetails? = null,
+  incentiveDetails: IncentiveLevelsChangedDetails? = null,
+  prisonerUpdatedDetails: PrisonerUpdatedDetails? = null,
+  mergeDetails: OffenderMergedDetails? = null,
 ) = EventReview(
   eventReviewId = eventReviewId,
   serviceIdentifier = serviceIdentifier,
@@ -30,4 +38,8 @@ internal fun eventReviewFactory(
   acknowledgedBy = acknowledgedBy,
   eventDescription = eventDescription,
   activeAllocations = activeAllocations,
+  alertDetails = alertDetails,
+  incentiveDetails = incentiveDetails,
+  prisonerUpdatedDetails = prisonerUpdatedDetails,
+  mergeDetails = mergeDetails,
 )
