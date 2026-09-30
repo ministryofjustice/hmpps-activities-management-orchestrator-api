@@ -25,7 +25,7 @@ class EventReviewServiceTest {
     val apiResponse = eventReviewSearchResultsFactory(
       content = listOf(
         eventReviewFactory(),
-        eventReviewFactory(eventReviewId = 2L, eventDescription = EventReviewDescription.RELEASED),
+        eventReviewFactory(eventReviewId = 2L, eventDescription = EventReviewDescription.ACTIVITY_SUSPENDED),
       ),
       totalElements = 2L,
     )
@@ -40,12 +40,12 @@ class EventReviewServiceTest {
 
     with(result.content[0]) {
       assertThat(eventReviewId).isEqualTo(1L)
-      assertThat(eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
+      assertThat(eventDescription).isEqualTo(EventReviewDescription.RELEASED)
     }
 
     with(result.content[1]) {
       assertThat(eventReviewId).isEqualTo(2L)
-      assertThat(eventDescription).isEqualTo(EventReviewDescription.RELEASED)
+      assertThat(eventDescription).isEqualTo(EventReviewDescription.ACTIVITY_SUSPENDED)
     }
   }
 
@@ -151,7 +151,7 @@ class EventReviewServiceTest {
 
     assertThat(result.content).isNotEmpty()
     assertThat(result.content[0].eventReviewId).isEqualTo(1L)
-    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.TEMPORARY_RELEASE)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.RELEASED)
     assertThat(result.content[0].prisonerDetails?.prisonerNumber).isEqualTo("G4793VF")
     assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOE")
     assertThat(result.content[0].prisonerDetails?.lastName).isEqualTo("BLOGGS")
