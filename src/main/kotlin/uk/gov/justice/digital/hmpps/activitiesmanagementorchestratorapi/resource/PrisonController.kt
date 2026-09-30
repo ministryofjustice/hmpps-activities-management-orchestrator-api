@@ -8,15 +8,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.CellLocationResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
-import io.swagger.v3.oas.annotations.parameters.RequestBody as OpenApiRequestBody
 
 @RestController
 @RequestMapping(value = ["/prison"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -36,7 +34,7 @@ class PrisonController(
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = List::class),
+            schema = Schema(implementation = CellLocationResultsDto::class),
           ),
         ],
       ),
@@ -56,5 +54,8 @@ class PrisonController(
     @RequestParam(required = true)
     @Parameter(description = "Booking identiier")
     bookingId: String,
-  ): List<BedAssignment>? = prisonService.getCurrentAndPreviousBedAssignment(bookingId = bookingId)?.content
+  ): CellLocationResultsDto? = prisonService.getCurrentAndPreviousBedAssignment(bookingId = bookingId)
+    ?.content
+    ?.mapNotNull { it.description }
+    ?.let { CellLocationResultsDto(cellLocations = it) }
 }

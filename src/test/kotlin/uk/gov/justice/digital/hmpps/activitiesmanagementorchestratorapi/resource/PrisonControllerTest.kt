@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.client.MockMvcWebTestClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.config.ActivitiesManagementOrchestratorApiExceptionHandler
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.CellLocationResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonService
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
@@ -43,7 +44,7 @@ class PrisonControllerTest {
 
     val result = controller.getCellLocationHistory("12345")
 
-    assertThat(result).isEqualTo(expected.content)
+    assertThat(result).isEqualTo(CellLocationResultsDto(cellLocations = listOf("MDI-1-2", "MDI-1-1")))
     verify(prisonService).getCurrentAndPreviousBedAssignment("12345")
   }
 
@@ -115,9 +116,9 @@ class PrisonControllerWebTest : ControllerTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("$.length()").isEqualTo(2)
-      .jsonPath("$[0].description").isEqualTo("MDI-1-2")
-      .jsonPath("$[1].description").isEqualTo("MDI-1-1")
+      .jsonPath("$.cellLocations.length()").isEqualTo(2)
+      .jsonPath("$.cellLocations[0]").isEqualTo("MDI-1-2")
+      .jsonPath("$.cellLocations[1]").isEqualTo("MDI-1-1")
 
     verify(prisonService).getCurrentAndPreviousBedAssignment("12345")
   }

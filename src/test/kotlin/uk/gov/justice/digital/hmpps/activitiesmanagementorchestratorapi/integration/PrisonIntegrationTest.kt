@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.CellLocationResultsDto
 
 class PrisonIntegrationTest : IntegrationTestBase() {
 
@@ -22,11 +23,11 @@ class PrisonIntegrationTest : IntegrationTestBase() {
 
     prisonApi().stubGetBedAssignmentsHistoryByBookingId(bookingId, 0, 2, apiResponse)
 
-    val result = getCellLocationHistory(bookingId).successList<BedAssignment>()
+    val result = getCellLocationHistory(bookingId).success<CellLocationResultsDto>()
 
-    assertThat(result).hasSize(2)
-    assertThat(result[0].description).isEqualTo("MDI-1-2")
-    assertThat(result[1].description).isEqualTo("MDI-1-1")
+    assertThat(result.cellLocations).hasSize(2)
+    assertThat(result.cellLocations!![0]).isEqualTo("MDI-1-2")
+    assertThat(result.cellLocations!![1]).isEqualTo("MDI-1-1")
   }
 
   @Test
@@ -36,9 +37,9 @@ class PrisonIntegrationTest : IntegrationTestBase() {
 
     prisonApi().stubGetBedAssignmentsHistoryByBookingId(bookingId, 0, 2, apiResponse)
 
-    val result = getCellLocationHistory(bookingId).successList<BedAssignment>()
+    val result = getCellLocationHistory(bookingId).success<CellLocationResultsDto>()
 
-    assertThat(result).isEmpty()
+    assertThat(result.cellLocations).isEmpty()
   }
 
   @Test

@@ -19,7 +19,7 @@ class PrisonService(
     }
 
     if (bookingId.toLongOrNull() !is Long) {
-        throw ValidationException("Booking ID must be a valid number")
+      throw ValidationException("Booking ID must be a valid number")
     }
 
     return prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, size = historyLength)
