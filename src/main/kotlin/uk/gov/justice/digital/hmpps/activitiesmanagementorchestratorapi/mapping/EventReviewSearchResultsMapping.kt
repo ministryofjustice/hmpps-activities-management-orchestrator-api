@@ -25,4 +25,8 @@ internal fun EventReview.toDto(): EventReviewDto = EventReviewDto(
   acknowledgedBy = acknowledgedBy,
   eventDescription = eventDescription,
   activeAllocations = activeAllocations,
+  alertDetails = alertDetails,
+  incentiveDetails = incentiveDetails,
+  prisonerUpdatedDetails = prisonerUpdatedDetails,
+  mergeDetails = mergeDetails,
 )
