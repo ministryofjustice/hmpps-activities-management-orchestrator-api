@@ -1,11 +1,15 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration
 
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
@@ -114,6 +118,131 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
       .expectStatus().isOk
       .expectBody()
       .jsonPath("$.content[0].alertDetails").doesNotExist()
+  }
+
+  @Test
+  fun `should return 200 with cell history populated for a prisoner-updated event`() {
+    val bookingId = 123456
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = bookingId,
+        ),
+      ),
+    )
+    val bedAssignmentHistory = BedAssignmentSearchResults(
+      content = listOf(
+        BedAssignment(description = "MDI-1-2"),
+        BedAssignment(description = "MDI-1-1"),
+      ),
+      pageNumber = 0,
+      totalElements = 2,
+      totalPages = 1,
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+    prisonApi().stubGetBedAssignmentsHistoryByBookingId(bookingId.toString(), 0, 2, bedAssignmentHistory)
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].eventType).isEqualTo("prisoner-offender-search.prisoner.updated")
+    assertThat(result.content[0].prisonerUpdatedDetails?.newCell).isEqualTo("MDI-1-2")
+    assertThat(result.content[0].prisonerUpdatedDetails?.previousCell).isEqualTo("MDI-1-1")
+  }
+
+  @Test
+  fun `should return 200 with null cell history for events that are not prisoner-updated events`() {
+    val bookingId = 123456
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prison-offender-events.prisoner.released",
+          bookingId = bookingId,
+        ),
+      ),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].eventType).isEqualTo("prison-offender-events.prisoner.released")
+    assertThat(result.content[0].prisonerUpdatedDetails).isNull()
+    prisonApi().verify(0, getRequestedFor(urlMatching("/api/bookings/$bookingId/cell-history.*")))
+  }
+
+  @Test
+  fun `should return 200 with cell history populated only for the prisoner-updated event, among a mix of event types`() {
+    val updatedBookingId = 111111
+    val releasedBookingId = 222222
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventReviewId = 1L,
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = updatedBookingId,
+          prisonerNumber = "A1234AA",
+        ),
+        eventReviewFactory(
+          eventReviewId = 2L,
+          eventType = "prison-offender-events.prisoner.released",
+          bookingId = releasedBookingId,
+          prisonerNumber = "B2345BB",
+        ),
+      ),
+      totalElements = 2L,
+    )
+    val bedAssignmentHistory = BedAssignmentSearchResults(
+      content = listOf(
+        BedAssignment(description = "MDI-2-1"),
+        BedAssignment(description = "MDI-2-2"),
+      ),
+      pageNumber = 0,
+      totalElements = 2,
+      totalPages = 1,
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(listOf("A1234AA", "B2345BB"), emptyList())
+    prisonApi().stubGetBedAssignmentsHistoryByBookingId(updatedBookingId.toString(), 0, 2, bedAssignmentHistory)
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(2)
+
+    val updatedEvent = result.content.single { it.eventReviewId == 1L }
+    assertThat(updatedEvent.eventType).isEqualTo("prisoner-offender-search.prisoner.updated")
+    assertThat(updatedEvent.prisonerUpdatedDetails?.newCell).isEqualTo("MDI-2-1")
+    assertThat(updatedEvent.prisonerUpdatedDetails?.previousCell).isEqualTo("MDI-2-2")
+
+    val releasedEvent = result.content.single { it.eventReviewId == 2L }
+    assertThat(releasedEvent.eventType).isEqualTo("prison-offender-events.prisoner.released")
+    assertThat(releasedEvent.prisonerUpdatedDetails).isNull()
   }
 
   @Test
