@@ -43,7 +43,7 @@ class EventReviewControllerTest : ControllerTestBase() {
         prisonCode = "MDI",
         prisonerNumber = "A1234AA",
         bookingId = 123456,
-        eventDescription = EventReviewDescription.TEMPORARY_RELEASE,
+        eventDescription = EventReviewDescription.RELEASED,
       ),
     ),
     pageNumber = 0,

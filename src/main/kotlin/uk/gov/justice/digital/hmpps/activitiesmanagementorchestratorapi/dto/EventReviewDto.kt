@@ -3,7 +3,11 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.IncentiveLevelsChangedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.OffenderMergedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import java.time.LocalDateTime
 
@@ -46,7 +50,7 @@ data class EventReviewDto(
   val acknowledgedBy: String? = null,
 
   @Schema(
-    description = "A simple description of the event acton",
+    description = "A simple description of the event action",
     example = "ACTIVITY_SUSPENDED",
   )
   val eventDescription: EventReviewDescription? = null,
@@ -62,4 +66,29 @@ data class EventReviewDto(
     example = """{"prisonerNumber":"G9372GQ","firstName":"JOE","lastName":"BLOGGS","cellLocation":"A-1-001"}""",
   )
   val prisonerDetails: PrisonerBasicDetails? = null,
+
+  @Schema(
+    description = "The alert codes added and/or removed, for alerts-updated events. Null for all other events.",
+    nullable = true,
+  )
+  val alertDetails: AlertsUpdatedDetails? = null,
+
+  @Schema(
+    description = "The new and previous incentive levels, for incentives-changed events. Null for all other events.",
+    nullable = true,
+  )
+  val incentiveDetails: IncentiveLevelsChangedDetails? = null,
+
+  @Schema(
+    description = "The previous and new cell locations, for prisoner-updated events. Null for all other events. " +
+      "The cell values are populated by the orchestrator.",
+    nullable = true,
+  )
+  val prisonerUpdatedDetails: PrisonerUpdatedDetails? = null,
+
+  @Schema(
+    description = "The removed and retained prisoner numbers, for prisoner-merged events. Null for all other events.",
+    nullable = true,
+  )
+  val mergeDetails: OffenderMergedDetails? = null,
 )
