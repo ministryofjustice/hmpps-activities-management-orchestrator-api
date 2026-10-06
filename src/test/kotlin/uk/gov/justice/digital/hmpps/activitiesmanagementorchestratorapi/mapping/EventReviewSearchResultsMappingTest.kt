@@ -2,6 +2,10 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.IncentiveLevelsChangedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.OffenderMergedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 
@@ -20,7 +24,15 @@ class EventReviewSearchResultsMappingTest {
 
   @Test
   fun `should map EventReview to dto`() {
-    val eventReview = eventReviewFactory()
+    val eventReview = eventReviewFactory(
+      alertDetails = AlertsUpdatedDetails(
+        listOf("A1", "A2"),
+        listOf("A3", "A4"),
+      ),
+      incentiveDetails = IncentiveLevelsChangedDetails("STD", "BAS"),
+      prisonerUpdatedDetails = PrisonerUpdatedDetails(),
+      mergeDetails = OffenderMergedDetails(),
+    )
     val dto = eventReview.toDto()
 
     assertThat(dto.eventReviewId).isEqualTo(eventReview.eventReviewId)

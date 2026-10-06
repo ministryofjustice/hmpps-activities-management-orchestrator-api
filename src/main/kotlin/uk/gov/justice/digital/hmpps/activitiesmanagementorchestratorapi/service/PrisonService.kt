@@ -20,7 +20,9 @@ class PrisonService(
     bookingIds.distinct()
       .map { bookingId -> async { bookingId to getCurrentAndPreviousBedAssignment(bookingId.toString()) } }
       .awaitAll()
-      .mapNotNull { (bookingId, assignment) -> assignment?.let { bookingId to it } }
+      .mapNotNull { (bookingId, assignment) ->
+        assignment?.takeIf { it.content.isNotEmpty() }?.let { bookingId to it }
+      }
       .toMap()
   }
 
