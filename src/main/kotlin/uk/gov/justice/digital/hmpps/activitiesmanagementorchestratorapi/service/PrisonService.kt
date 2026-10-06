@@ -4,6 +4,8 @@ import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
@@ -16,9 +18,17 @@ class PrisonService(
   @Value("\${prison.service.bed-assignment.history-length:2}")
   private val historyLength: Int = 2
 
+  private val maxConcurrentBedAssignmentLookups = 5
+
   open suspend fun getCurrentAndPreviousBedAssignment(bookingIds: List<Int>): Map<Int, BedAssignmentSearchResults> = coroutineScope {
+    val semaphore = Semaphore(maxConcurrentBedAssignmentLookups)
+
     bookingIds.distinct()
-      .map { bookingId -> async { bookingId to getCurrentAndPreviousBedAssignment(bookingId.toString()) } }
+      .map { bookingId ->
+        async {
+          semaphore.withPermit { bookingId to getCurrentAndPreviousBedAssignment(bookingId.toString()) }
+        }
+      }
       .awaitAll()
       .mapNotNull { (bookingId, assignment) ->
         assignment?.takeIf { it.content.isNotEmpty() }?.let { bookingId to it }
