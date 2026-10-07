@@ -79,7 +79,8 @@ class EventReviewService(
   private fun translateToPrisonerUpdatedDetails(bedAssignments: BedAssignmentSearchResults): PrisonerUpdatedDetails {
     val cellDescriptions = bedAssignments.content.mapNotNull { it.description }
     return PrisonerUpdatedDetails(
-    newCell = bedAssignments.content.getOrNull(0)?.description,
-    previousCell = bedAssignments.content.getOrNull(1)?.description,)
+      newCell = bedAssignments.content.getOrNull(0)?.description,
+      previousCell = bedAssignments.content.getOrNull(1)?.description,
+    )
   }
 }
