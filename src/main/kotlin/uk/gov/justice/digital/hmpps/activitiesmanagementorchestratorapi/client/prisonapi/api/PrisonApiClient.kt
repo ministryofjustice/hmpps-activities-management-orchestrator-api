@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.util.context.Context
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 
 inline fun <reified T : Any> typeReference() = object : ParameterizedTypeReference<T>() {}
 
@@ -39,6 +40,21 @@ class PrisonApiClient(
       .retrieve()
       .bodyToMono<BedAssignmentSearchResults>()
       .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-api", "path", "/api/bookings/{bookingId}/cell-history")))
+      .awaitSingle()
+  }
+
+  suspend fun getPrisonName(prisonCode: String): PrisonDetails {
+    require(prisonCode.isNotBlank()) { "Prison code must be provided" }
+
+    return prisonApiWebClient.get()
+      .uri { uriBuilder ->
+        uriBuilder
+          .path("/api/agencies/{agencyId}")
+          .build(prisonCode)
+      }
+      .retrieve()
+      .bodyToMono<PrisonDetails>()
+      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-api", "path", "/api/agencies/{agencyId}")))
       .awaitSingle()
   }
 }

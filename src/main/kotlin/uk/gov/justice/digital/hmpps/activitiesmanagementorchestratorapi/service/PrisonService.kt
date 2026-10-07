@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.PrisonDetailsDto
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping.toDto
 
 @Service
 class PrisonService(
@@ -23,5 +25,13 @@ class PrisonService(
     }
 
     return prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, size = historyLength)
+  }
+
+  suspend fun getPrisonName(prisonCode: String): PrisonDetailsDto {
+    if (prisonCode.isBlank()) {
+      throw ValidationException("Prison code must be provided")
+    }
+
+    return prisonApiClient.getPrisonName(prisonCode).toDto()
   }
 }

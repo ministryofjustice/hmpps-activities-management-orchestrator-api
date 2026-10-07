@@ -1,14 +1,18 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service
 
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.PrisonDetailsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 import java.time.LocalDate
@@ -16,7 +20,8 @@ import java.time.LocalDate
 class EventReviewServiceTest {
   private val activitiesApiClient: ActivitiesApiClient = mock()
   private val prisonerSearchService: PrisonerSearchService = mock()
-  private val eventReviewService = EventReviewService(activitiesApiClient, prisonerSearchService)
+  private val prisonService: PrisonService = mock()
+  private val eventReviewService = EventReviewService(activitiesApiClient, prisonerSearchService, prisonService)
 
   private val date = LocalDate.of(2026, 8, 1)
 
@@ -163,5 +168,55 @@ class EventReviewServiceTest {
     assertThat(result.content[1].prisonerDetails?.firstName).isEqualTo("JANE")
     assertThat(result.content[1].prisonerDetails?.lastName).isEqualTo("SMITH")
     assertThat(result.content[1].prisonerDetails?.cellLocation).isEqualTo("1-2-003")
+  }
+
+  @Test
+  fun `should enrich eventData with the prison name for activities-changed and appointments-changed events`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventReviewId = 1L,
+          eventType = "prison-offender-events.prisoner.activities-changed",
+          prisonCode = "MDI",
+          eventData = "event data",
+        ),
+        eventReviewFactory(
+          eventReviewId = 2L,
+          eventType = "prison-offender-events.prisoner.appointments-changed",
+          prisonCode = "MDI",
+          eventData = "event data",
+        ),
+        eventReviewFactory(
+          eventReviewId = 3L,
+          eventType = "prison-offender-events.prisoner.released",
+          prisonCode = "MDI",
+          eventData = "event data",
+        ),
+      ),
+      totalElements = 3L,
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+    whenever(prisonService.getPrisonName("MDI")).thenReturn(PrisonDetailsDto(prisonName = "Moorland (HMP)"))
+
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    assertThat(result.content[0].eventData).isEqualTo("Moorland (HMP)")
+    assertThat(result.content[1].eventData).isEqualTo("Moorland (HMP)")
+    assertThat(result.content[2].eventData).isEqualTo("event data")
+    verify(prisonService).getPrisonName("MDI")
+  }
+
+  @Test
+  fun `should throw validation exception and make no calls when prison code is blank`() = runTest {
+    val exception = assertThrows<ValidationException> {
+      eventReviewService.getEventsDataForReview(" ", date, page = 0, size = 10, sortDirection = "ascending")
+    }
+
+    assertThat(exception).hasMessage("Prison code must be provided")
+    verifyNoInteractions(activitiesApiClient)
+    verifyNoInteractions(prisonerSearchService)
+    verifyNoInteractions(prisonService)
   }
 }

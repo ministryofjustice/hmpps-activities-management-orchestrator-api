@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.R
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonerApiMockServer
 
 class PrisonApiClientTest {
@@ -92,6 +93,49 @@ class PrisonApiClientTest {
     }
   }
 
+  @Test
+  fun `getPrisonName - success`() = runTest {
+    val prisonCode = "LEI"
+    val expected = PrisonDetails(
+      description = "Leeds (HMP)",
+    )
+
+    prisonerApiMockServer.stubGetPrisonName(prisonCode, expected)
+
+    val result = prisonApiClient.getPrisonName(prisonCode)
+
+    assertThat(result).isEqualTo(expected)
+  }
+
+  @Test
+  fun `getPrisonName - throws exception and makes no call when prisonCode is empty`() = runTest {
+    assertThrows<IllegalArgumentException> {
+      prisonApiClient.getPrisonName("")
+    }
+
+    assertThat(prisonerApiMockServer.allServeEvents).isEmpty()
+  }
+
+  @Test
+  fun `getPrisonName - should throw exception on 404 response`() = runTest {
+    val prisonCode = "XXX"
+    prisonerApiMockServer.stubGetPrisonNameNotFound(prisonCode)
+
+    assertThrows<WebClientResponseException.NotFound> {
+      prisonApiClient.getPrisonName(prisonCode)
+    }
+  }
+
+  @Test
+  fun `getPrisonName - should throw exception on 500 response`() = runTest {
+    val prisonCode = "LEI"
+    prisonerApiMockServer.stubGetPrisonNameServerError(prisonCode)
+
+    assertThrows<WebClientResponseException.InternalServerError> {
+      prisonApiClient.getPrisonName(prisonCode)
+    }
+  }
+
   @Nested
   @DisplayName("Retrying failed API calls")
   inner class RetryingFailedApiCalls {
@@ -114,6 +158,14 @@ class PrisonApiClientTest {
       assertThrows<WebClientRequestException> {
         prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
       }
+    }
+
+    @Test
+    fun `will succeed if number of fails is the maximum allowed`(): Unit = runTest {
+      prisonerApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected, 2)
+
+      val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+      assertThat(result).isEqualTo(expected)
     }
   }
 }
