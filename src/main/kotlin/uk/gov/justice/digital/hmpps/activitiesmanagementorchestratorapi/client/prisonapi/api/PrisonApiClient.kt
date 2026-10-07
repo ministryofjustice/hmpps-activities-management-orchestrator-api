@@ -39,7 +39,7 @@ class PrisonApiClient(
       }
       .retrieve()
       .bodyToMono<BedAssignmentSearchResults>()
-      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-api", "path", "/api/bookings/{bookingId}/cell-history")))
+      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prison-api", "path", "/api/bookings/{bookingId}/cell-history")))
       .awaitSingle()
   }
 
@@ -54,7 +54,7 @@ class PrisonApiClient(
       }
       .retrieve()
       .bodyToMono<PrisonDetails>()
-      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prisoner-api", "path", "/api/agencies/{agencyId}")))
+      .retryWhen(backoffSpec.withRetryContext(Context.of("api", "prison-api", "path", "/api/agencies/{agencyId}")))
       .awaitSingle()
   }
 }

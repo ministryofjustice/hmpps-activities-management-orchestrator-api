@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 
-class PrisonerApiMockServer : MockServer(8093) {
+class PrisonApiMockServer : MockServer(8093) {
 
   fun stubGetBedAssignmentsHistoryByBookingId(bookingId: String, page: Int, size: Int, results: BedAssignmentSearchResults) {
     stubFor(
@@ -108,7 +108,7 @@ class PrisonApiExtension :
   BeforeEachCallback {
   companion object {
     @JvmField
-    val prisonApiServer = PrisonerApiMockServer()
+    val prisonApiServer = PrisonApiMockServer()
   }
 
   override fun beforeAll(context: ExtensionContext) {
