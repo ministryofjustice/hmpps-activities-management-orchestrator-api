@@ -1,10 +1,10 @@
 ### Gets event data for review
 // @no-log
 < {%
-    request.variables.set("prisonCode", "LEI")
+    request.variables.set("prisonCode", "MDI")
 %}
 
-GET {{ baseUrl }}/event-review/prison/{{prisonCode}}?date=2023-09-25
+GET {{ baseUrl }}/event-review/prison/{{prisonCode}}?date=2026-09-09
 Authorization: Bearer {{$auth.token("auth-token")}}
 Content-Type: application/json
 
@@ -15,9 +15,15 @@ Content-Type: application/json
 
 ### Get prisoner details by numbers
 POST {{ baseUrl }}/prisoner/prisoner-details-by-numbers
-Authorization: Bearer <<bearerToken>>
+Authorization: Bearer {{$auth.token("auth-token")}}
 Content-Type: application/json
 
 {"prisonerNumbers": ["ABC123"]}
 
-
+### Get prison name by prison code
+< {%
+    request.variables.set("prisonCode", "LEI")
+%}
+GET {{ baseUrl }}/prison/{{prisonCode}}/name
+Authorization: Bearer {{$auth.token("auth-token")}}
+Content-Type: application/json

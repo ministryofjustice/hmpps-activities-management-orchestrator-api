@@ -8,8 +8,9 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 
-class PrisonerApiMockServer : MockServer(8093) {
+class PrisonApiMockServer : MockServer(8093) {
 
   fun stubGetBedAssignmentsHistoryByBookingId(bookingId: String, page: Int, size: Int, results: BedAssignmentSearchResults) {
     stubFor(
@@ -63,6 +64,42 @@ class PrisonerApiMockServer : MockServer(8093) {
         ),
     )
   }
+
+  fun stubGetPrisonName(prisonCode: String, response: PrisonDetails) {
+    stubFor(
+      WireMock.get(WireMock.urlEqualTo("/api/agencies/$prisonCode"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(mapper.writeValueAsString(response))
+            .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubGetPrisonNameServerError(prisonCode: String) {
+    stubFor(
+      WireMock.get(WireMock.urlEqualTo("/api/agencies/$prisonCode"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody("""{"status": 500, "errorCode": "INTERNAL_SERVER_ERROR", "userMessage": "Internal server error", "developerMessage": "Internal server error"}""")
+            .withStatus(500),
+        ),
+    )
+  }
+
+  fun stubGetPrisonNameNotFound(prisonCode: String) {
+    stubFor(
+      WireMock.get(WireMock.urlEqualTo("/api/agencies/$prisonCode"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody("""{"status": 404, "errorCode": "NOT_FOUND", "userMessage": "Not found", "developerMessage": "Not found"}""")
+            .withStatus(404),
+        ),
+    )
+  }
 }
 
 class PrisonApiExtension :
@@ -71,7 +108,7 @@ class PrisonApiExtension :
   BeforeEachCallback {
   companion object {
     @JvmField
-    val prisonApiServer = PrisonerApiMockServer()
+    val prisonApiServer = PrisonApiMockServer()
   }
 
   override fun beforeAll(context: ExtensionContext) {

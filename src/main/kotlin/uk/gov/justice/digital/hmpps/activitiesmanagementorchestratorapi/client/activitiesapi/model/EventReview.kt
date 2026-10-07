@@ -15,6 +15,10 @@ data class EventReview(
   val acknowledgedBy: String? = null,
   val eventDescription: EventReviewDescription? = null,
   val activeAllocations: List<String> = emptyList(),
+  val alertDetails: AlertsUpdatedDetails? = null,
+  val incentiveDetails: IncentiveLevelsChangedDetails? = null,
+  val prisonerUpdatedDetails: PrisonerUpdatedDetails? = null,
+  val mergeDetails: OffenderMergedDetails? = null,
 )
 
 enum class EventReviewDescription {
@@ -23,4 +27,15 @@ enum class EventReviewDescription {
   RELEASED,
   PERMANENT_RELEASE,
   TEMPORARY_RELEASE,
+  ALERT_ADDED,
+  ALERT_CLOSED,
+  ALERTS_ADDED_AND_CLOSED,
+  TRANSFER_OUT,
+  ARRIVAL_OR_RETURN,
+  NON_ASSOCIATION,
+  CELL_MOVE,
+  INCENTIVE_LEVEL_CHANGED,
+  PRISONER_MERGED,
+  APPOINTMENTS_CANCELLED,
+  APPOINTMENTS_KEPT,
 }
