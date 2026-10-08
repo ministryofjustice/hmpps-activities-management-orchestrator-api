@@ -1,6 +1,6 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
-  kotlin("plugin.spring") version "2.4.20"
+  kotlin("plugin.spring") version "2.4.21"
 }
 
 // CVE-2026-76183 - hmpps gradle plugin pins 11.0.25. Remove this once it pins 11.0.26 or later
