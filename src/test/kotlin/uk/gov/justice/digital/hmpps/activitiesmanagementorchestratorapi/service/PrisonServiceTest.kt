@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -81,12 +82,88 @@ class PrisonServiceTest {
   }
 
   @Test
+  fun `should return a map of booking id to bed assignment history for a list of booking ids`() = runTest {
+    val firstAssignment = BedAssignmentSearchResults(
+      content = listOf(BedAssignment(description = "MDI-1-1")),
+      pageNumber = 0,
+      totalElements = 1,
+      totalPages = 1,
+    )
+    val secondAssignment = BedAssignmentSearchResults(
+      content = listOf(BedAssignment(description = "MDI-2-1")),
+      pageNumber = 0,
+      totalElements = 1,
+      totalPages = 1,
+    )
+
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("111", 0, 2)).thenReturn(firstAssignment)
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("222", 0, 2)).thenReturn(secondAssignment)
+
+    val result = prisonService.getCurrentAndPreviousBedAssignment(listOf(111, 222))
+
+    assertThat(result).isEqualTo(mapOf(111 to firstAssignment, 222 to secondAssignment))
+  }
+
+  @Test
+  fun `should omit booking ids from the map when no bed assignment history is found`() = runTest {
+    val assignment = BedAssignmentSearchResults(
+      content = listOf(BedAssignment(description = "MDI-1-1")),
+      pageNumber = 0,
+      totalElements = 1,
+      totalPages = 1,
+    )
+
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("111", 0, 2)).thenReturn(assignment)
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("222", 0, 2)).thenReturn(null)
+
+    val result = prisonService.getCurrentAndPreviousBedAssignment(listOf(111, 222))
+
+    assertThat(result).isEqualTo(mapOf(111 to assignment))
+  }
+
+  @Test
+  fun `should return an empty map when no booking ids are supplied`() = runTest {
+    val result = prisonService.getCurrentAndPreviousBedAssignment(emptyList())
+
+    assertThat(result).isEmpty()
+    verifyNoInteractions(prisonApiClient)
+  }
+
+  @Test
+  fun `should only look up each distinct booking id once`() = runTest {
+    val assignment = BedAssignmentSearchResults(
+      content = listOf(BedAssignment(description = "MDI-1-1")),
+      pageNumber = 0,
+      totalElements = 1,
+      totalPages = 1,
+    )
+
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("111", 0, 2)).thenReturn(assignment)
+
+    val result = prisonService.getCurrentAndPreviousBedAssignment(listOf(111, 111, 111))
+
+    assertThat(result).isEqualTo(mapOf(111 to assignment))
+    verify(prisonApiClient, times(1)).getBedAssignmentsHistoryByBookingId("111", 0, 2)
+  }
+
+  @Test
   fun `should propagate exceptions from the upstream prisoner api client`() = runTest {
     val bookingId = "12345"
     whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, 0, 2)).thenThrow(RuntimeException("Upstream failure"))
 
     val exception = assertThrows<RuntimeException> {
       prisonService.getCurrentAndPreviousBedAssignment(bookingId)
+    }
+
+    assertThat(exception).hasMessage("Upstream failure")
+  }
+
+  @Test
+  fun `should propagate exceptions from the upstream prisoner api client for a list of booking ids`() = runTest {
+    whenever(prisonApiClient.getBedAssignmentsHistoryByBookingId("111", 0, 2)).thenThrow(RuntimeException("Upstream failure"))
+
+    val exception = assertThrows<RuntimeException> {
+      prisonService.getCurrentAndPreviousBedAssignment(listOf(111))
     }
 
     assertThat(exception).hasMessage("Upstream failure")
