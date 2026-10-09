@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service
 
+import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping.toDto
-import jakarta.validation.ValidationException
 import java.time.LocalDate
 
 @Service
