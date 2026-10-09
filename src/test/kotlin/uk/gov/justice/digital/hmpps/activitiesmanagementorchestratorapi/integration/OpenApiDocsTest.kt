@@ -37,7 +37,6 @@ class OpenApiDocsTest(
   }
 
   @Test
-  @Disabled("TODO Enable this test once you have an endpoint. It checks that endpoints appear on the OpenAPI spec.")
   fun `the open api json contains documentation`() {
     webTestClient.get()
       .uri("/v3/api-docs")
@@ -95,9 +94,8 @@ class OpenApiDocsTest(
   }
 
   @ParameterizedTest
-  @Disabled("TODO Enable this test once you have added security schema to OpenApiConfiguration.OpenAPi().components(). Add the security scheme / roles to @CsvSource")
-  @CsvSource(value = ["security-scheme-name, ROLE_"])
-  fun `the security scheme is setup for bearer tokens`(key: String, role: String) {
+  @CsvSource(value = ["bearer-jwt"])
+  fun `the security scheme is setup for bearer tokens`(key: String) {
     webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
@@ -106,9 +104,6 @@ class OpenApiDocsTest(
       .expectBody()
       .jsonPath("$.components.securitySchemes.$key.type").isEqualTo("http")
       .jsonPath("$.components.securitySchemes.$key.scheme").isEqualTo("bearer")
-      .jsonPath("$.components.securitySchemes.$key.description").value<String> {
-        assertThat(it).contains(role)
-      }
       .jsonPath("$.components.securitySchemes.$key.bearerFormat").isEqualTo("JWT")
       .jsonPath("$.security[0].$key").isEqualTo(JSONArray().apply { this.add("read") })
   }
