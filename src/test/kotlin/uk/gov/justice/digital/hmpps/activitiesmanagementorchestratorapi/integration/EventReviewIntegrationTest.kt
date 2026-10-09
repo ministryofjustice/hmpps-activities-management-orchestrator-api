@@ -246,6 +246,71 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return 200 with alertDetails when populated in duplicate test set`() {
+    val alertDetails = AlertsUpdatedDetails(
+      alertsAdded = listOf("A1", "A2"),
+      alertsClosed = listOf("C1"),
+    )
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(eventReviewFactory(alertDetails = alertDetails)),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].alertDetails).isEqualTo(alertDetails)
+    assertThat(result.content[0].alertDetails?.alertsAdded).containsExactly("A1", "A2")
+    assertThat(result.content[0].alertDetails?.alertsClosed).containsExactly("C1")
+  }
+
+  @Test
+  fun `should omit alertDetails from response when null in duplicate test set`() {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(eventReviewFactory(alertDetails = null)),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    webTestClient.get()
+      .uri { uriBuilder ->
+        uriBuilder
+          .path("/event-review/prison/{prisonCode}")
+          .queryParam("date", date)
+          .build("MDI")
+      }
+      .accept(MediaType.APPLICATION_JSON)
+      .headers(setAuthorisation(roles = listOf("ACTIVITY_HUB", "ACTIVITY_ADMIN")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.content[0].alertDetails").doesNotExist()
+  }
+
+  @Test
   fun `should return 200 with empty results`() {
     val emptyResponse = eventReviewSearchResultsFactory(
       content = emptyList(),

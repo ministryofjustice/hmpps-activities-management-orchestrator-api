@@ -32,9 +32,10 @@ Add a local `.env` file to the root of the project:
 ```
 SYSTEM_CLIENT_ID=<system.client.id>
 SYSTEM_CLIENT_SECRET=<system.client.secret>
-HMPPS_AUTH_URL= https://sign-in-dev.hmpps.service.justice.gov.uk/auth
+HMPPS_AUTH_URL=https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 ACTIVITIES_API_URL=https://activities-api-dev.prison.service.justice.gov.uk
 PRISONER_SEARCH_API_URL=https://prisoner-search-dev.prison.service.justice.gov.uk
+PRISON_API_URL=https://prison-api-dev.prison.service.justice.gov.uk
 ```
 
 - You **must** escape any '\$' characters with '\\$'

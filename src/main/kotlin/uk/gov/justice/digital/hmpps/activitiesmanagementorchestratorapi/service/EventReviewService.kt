@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.mapping.toDto
+import jakarta.validation.ValidationException
 import java.time.LocalDate
 
 @Service
@@ -14,6 +16,13 @@ class EventReviewService(
   private val prisonerSearchService: PrisonerSearchService,
   private val prisonService: PrisonService,
 ) {
+  private companion object {
+    val PRISON_NAME_ENRICHED_EVENT_TYPES = setOf(
+      "prison-offender-events.prisoner.activities-changed",
+      "prison-offender-events.prisoner.appointments-changed",
+    )
+  }
+
   suspend fun getEventsDataForReview(
     prisonCode: String,
     date: LocalDate,
@@ -24,8 +33,10 @@ class EventReviewService(
     size: Int,
     sortDirection: String,
   ): EventReviewSearchResultsDto {
+    if (prisonCode.isBlank()) {
+      throw ValidationException("Prison code must be provided")
+    }
     val targetEventForCellLocations = "prisoner-offender-search.prisoner.updated"
-
     val events = activitiesApiClient
       .getEventsDataForReview(
         prisonCode = prisonCode,
@@ -44,6 +55,13 @@ class EventReviewService(
       emptyMap()
     } else {
       prisonerSearchService.getBasicPrisonerDetailsMap(prisonerNumbersToLookup)
+    }
+
+    val hasEnrichedEvents = events.content.any { it.eventType in PRISON_NAME_ENRICHED_EVENT_TYPES }
+    val prisonName = if (hasEnrichedEvents && prisonCode.isNotBlank()) {
+      prisonService.getPrisonName(prisonCode).prisonName
+    } else {
+      null
     }
 
     val bookingIdentifiersToLookup = events.content
@@ -68,7 +86,7 @@ class EventReviewService(
           } else {
             null
           },
-        )
+        ).enrichEventDataWithPrisonName(prisonName)
       },
       pageNumber = events.pageNumber,
       totalElements = events.totalElements,
@@ -82,5 +100,10 @@ class EventReviewService(
       newCell = bedAssignments.content.getOrNull(0)?.description,
       previousCell = bedAssignments.content.getOrNull(1)?.description,
     )
+  }
+
+  private fun EventReviewDto.enrichEventDataWithPrisonName(prisonName: String?): EventReviewDto {
+    if (eventType !in PRISON_NAME_ENRICHED_EVENT_TYPES || prisonName == null) return this
+    return copy(eventData = prisonName)
   }
 }

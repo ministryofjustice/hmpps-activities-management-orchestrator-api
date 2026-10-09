@@ -25,13 +25,10 @@ class EventReviewSearchResultsMappingTest {
   @Test
   fun `should map EventReview to dto`() {
     val eventReview = eventReviewFactory(
-      alertDetails = AlertsUpdatedDetails(
-        listOf("A1", "A2"),
-        listOf("A3", "A4"),
-      ),
-      incentiveDetails = IncentiveLevelsChangedDetails("STD", "BAS"),
-      prisonerUpdatedDetails = PrisonerUpdatedDetails(),
-      mergeDetails = OffenderMergedDetails(),
+      alertDetails = AlertsUpdatedDetails(alertsAdded = listOf("A1", "A2"), alertsClosed = listOf("C1")),
+      incentiveDetails = IncentiveLevelsChangedDetails(newLevel = "STD", previousLevel = "BAS"),
+      prisonerUpdatedDetails = PrisonerUpdatedDetails(previousCell = "MDI-1-1-001", newCell = "MDI-1-1-002"),
+      mergeDetails = OffenderMergedDetails(removedPrisonerNumber = "A1234BC", prisonerNumber = "A1234BD"),
     )
     val dto = eventReview.toDto()
 
