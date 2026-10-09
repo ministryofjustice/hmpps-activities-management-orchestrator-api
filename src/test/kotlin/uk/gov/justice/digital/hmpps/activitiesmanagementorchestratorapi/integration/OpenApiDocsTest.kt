@@ -105,7 +105,7 @@ class OpenApiDocsTest(
       .jsonPath("$.components.securitySchemes.$key.type").isEqualTo("http")
       .jsonPath("$.components.securitySchemes.$key.scheme").isEqualTo("bearer")
       .jsonPath("$.components.securitySchemes.$key.bearerFormat").isEqualTo("JWT")
-      .jsonPath("$.security[0].$key").isEqualTo(JSONArray().apply { this.add("read") })
+      .jsonPath("$.security[0].$key").isEqualTo(JSONArray())
   }
 
   @Test
@@ -118,5 +118,34 @@ class OpenApiDocsTest(
       .expectStatus().isOk
       .expectBody()
       .jsonPath("$.paths[*][*][?(!@.security)]").doesNotExist()
+  }
+
+  @Test
+  fun `hasRole authorization is extracted and rendered in endpoint description`() {
+    webTestClient.get()
+      .uri("/v3/api-docs")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$['paths']['/prison/{prisonCode}/name']['get']['description']").value<String> {
+        assertThat(it).contains("Requires one of the following roles:")
+          .contains("VIEW_PRISONER_DATA")
+      }
+  }
+
+  @Test
+  fun `hasAnyRole authorization is extracted and rendered in endpoint description`() {
+    webTestClient.get()
+      .uri("/v3/api-docs")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$['paths']['/event-review/prison/{prisonCode}']['get']['description']").value<String> {
+        assertThat(it).contains("Requires one of the following roles:")
+          .contains("ACTIVITY_HUB")
+          .contains("ACTIVITY_ADMIN")
+      }
   }
 }

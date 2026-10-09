@@ -55,7 +55,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
           .bearerFormat("JWT"),
       ),
     )
-    .addSecurityItem(SecurityRequirement().addList("bearer-jwt", "read"))
+    .addSecurityItem(SecurityRequirement().addList("bearer-jwt"))
 
   @Bean
   fun authorizationCustomizer(): OperationCustomizer = OperationCustomizer { operation: Operation, handlerMethod: HandlerMethod ->
@@ -82,7 +82,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
       }
 
       if (roles.isNotEmpty()) {
-        val rolesDescription = roles.joinToString(prefix = "*", separator = "\n* ")
+        val rolesDescription = roles.joinToString(prefix = "* ", separator = "\n* ")
         operation.description =
           "${operation.description ?: ""}\n\nRequires one of the following roles:\n$rolesDescription"
       }
