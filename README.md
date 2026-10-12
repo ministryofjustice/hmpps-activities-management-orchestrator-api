@@ -1,6 +1,6 @@
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/hmpps-activities-management-orchestrator-api/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/hmpps-activities-management-orchestrator-api)
 [![Docker Repository on ghcr](https://img.shields.io/badge/ghcr.io-repository-2496ED.svg?logo=docker)](https://ghcr.io/ministryofjustice/hmpps-activities-management-orchestrator-api)
-[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://activities-management-orchestrator-api-dev.hmpps.service.justice.gov.uk/swagger-ui/index.html)
+[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://activities-orchestrator-api-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
 
 # hmpps-activities-management-orchestrator-api
 
