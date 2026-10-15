@@ -11,6 +11,8 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.PrisonDetailsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
@@ -217,6 +219,145 @@ class EventReviewServiceTest {
     assertThat(exception).hasMessage("Prison code must be provided")
     verifyNoInteractions(activitiesApiClient)
     verifyNoInteractions(prisonerSearchService)
+    verifyNoInteractions(prisonService)
+  }
+
+  @Test
+  fun `should enrich prisoner-updated events with the new and previous cell locations`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = 123456,
+        ),
+      ),
+    )
+    val bedAssignmentHistory = BedAssignmentSearchResults(
+      content = listOf(
+        BedAssignment(description = "MDI-1-2"),
+        BedAssignment(description = "MDI-1-1"),
+      ),
+      pageNumber = 0,
+      totalElements = 2,
+      totalPages = 1,
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+    whenever(prisonService.getCurrentAndPreviousBedAssignment(listOf(123456))).thenReturn(mapOf(123456 to bedAssignmentHistory))
+
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    assertThat(result.content[0].prisonerUpdatedDetails?.newCell).isEqualTo("MDI-1-2")
+    assertThat(result.content[0].prisonerUpdatedDetails?.previousCell).isEqualTo("MDI-1-1")
+    verify(prisonService).getCurrentAndPreviousBedAssignment(listOf(123456))
+  }
+
+  @Test
+  fun `should only look up bed assignments for prisoner-updated events, de-duplicating booking ids`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventReviewId = 1L,
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = 123456,
+        ),
+        eventReviewFactory(
+          eventReviewId = 2L,
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = 123456,
+        ),
+        eventReviewFactory(
+          eventReviewId = 3L,
+          eventType = "prison-offender-events.prisoner.released",
+          bookingId = 999999,
+        ),
+      ),
+      totalElements = 3L,
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+    whenever(prisonService.getCurrentAndPreviousBedAssignment(listOf(123456))).thenReturn(emptyMap())
+
+    eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    verify(prisonService).getCurrentAndPreviousBedAssignment(listOf(123456))
+  }
+
+  @Test
+  fun `should not enrich events whose event type is not a prisoner-updated event, even if a bed assignment exists for the booking id`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prison-offender-events.prisoner.released",
+          bookingId = 123456,
+        ),
+      ),
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    assertThat(result.content[0].prisonerUpdatedDetails).isNull()
+    verifyNoInteractions(prisonService)
+  }
+
+  @Test
+  fun `should leave prisonerUpdatedDetails null when no bed assignment history is found for the booking id`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = 123456,
+        ),
+      ),
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+    whenever(prisonService.getCurrentAndPreviousBedAssignment(listOf(123456))).thenReturn(emptyMap())
+
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    assertThat(result.content[0].prisonerUpdatedDetails).isNull()
+  }
+
+  @Test
+  fun `should leave prisonerUpdatedDetails null when a prisoner-updated event has no booking id`() = runTest {
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventType = "prisoner-offender-search.prisoner.updated",
+          bookingId = null,
+        ),
+      ),
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(apiResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(listOf("A1234AA"))).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+
+    val result = eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
+    assertThat(result.content[0].prisonerUpdatedDetails).isNull()
+    verifyNoInteractions(prisonService)
+  }
+
+  @Test
+  fun `should not call prison service when there are no events to review`() = runTest {
+    val emptyResponse = eventReviewSearchResultsFactory(
+      content = emptyList(),
+      totalElements = 0L,
+      totalPages = 0,
+    )
+
+    whenever(activitiesApiClient.getEventsDataForReview("MDI", date, null, null, null, 0, 10, "ascending")).thenReturn(emptyResponse)
+    whenever(prisonerSearchService.getBasicPrisonerDetailsMap(emptyList())).thenReturn(emptyMap<String, PrisonerBasicDetails>())
+
+    eventReviewService.getEventsDataForReview("MDI", date, page = 0, size = 10, sortDirection = "ascending")
+
     verifyNoInteractions(prisonService)
   }
 }
