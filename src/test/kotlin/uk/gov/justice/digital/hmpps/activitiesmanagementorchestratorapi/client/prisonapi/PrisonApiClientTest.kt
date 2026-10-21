@@ -14,8 +14,6 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.api.PrisonApiClient
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignment
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.PrisonApiMockServer
 
@@ -44,53 +42,6 @@ class PrisonApiClientTest {
     prisonApiMockServer.resetAll()
     val webClient = WebClient.create("http://localhost:${prisonApiMockServer.port()}")
     prisonApiClient = PrisonApiClient(webClient, RetryApiService(3, 250))
-  }
-
-  @Test
-  fun `getBedAssignmentsHistoryByBookingId - success`() = runTest {
-    val bookingId = "12345"
-    val expected = BedAssignmentSearchResults(
-      content = listOf(BedAssignment(description = "MDI-1-1")),
-      pageNumber = 0,
-      totalElements = 1,
-      totalPages = 1,
-    )
-
-    prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingId(bookingId, 0, 1000, expected)
-
-    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
-
-    assertThat(result).isEqualTo(expected)
-  }
-
-  @Test
-  fun `getBedAssignmentsHistoryByBookingId - uses supplied page and size`() = runTest {
-    val bookingId = "12345"
-    val expected = BedAssignmentSearchResults(content = emptyList(), pageNumber = 2, totalElements = 0, totalPages = 0)
-
-    prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingId(bookingId, 2, 10, expected)
-
-    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId, page = 2, size = 10)
-
-    assertThat(result).isEqualTo(expected)
-  }
-
-  @Test
-  fun `getBedAssignmentsHistoryByBookingId - returns null and makes no call when bookingId is empty`() = runTest {
-    val result = prisonApiClient.getBedAssignmentsHistoryByBookingId("")
-
-    assertThat(result).isNull()
-    assertThat(prisonApiMockServer.allServeEvents).isEmpty()
-  }
-
-  @Test
-  fun `getBedAssignmentsHistoryByBookingId - should throw exception on 500 response`() = runTest {
-    val bookingId = "12345"
-    prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingIdServerError(bookingId, 0, 1000)
-
-    assertThrows<WebClientResponseException.InternalServerError> {
-      prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
-    }
   }
 
   @Test
@@ -139,32 +90,23 @@ class PrisonApiClientTest {
   @Nested
   @DisplayName("Retrying failed API calls")
   inner class RetryingFailedApiCalls {
-    val bookingId = "12345"
-    val expected = BedAssignmentSearchResults(content = emptyList(), pageNumber = 0, totalElements = 0, totalPages = 0)
+    val prisonCode = "LEI"
+    val expected = PrisonDetails(description = "Leeds (HMP)")
 
     @Test
-    fun `will succeed if number of fails is less than maximum allowed`(): Unit = runTest {
-      prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected)
-
-      val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
-
-      assertThat(result).isEqualTo(expected)
-    }
-
-    @Test
-    fun `will fail if number of fails is more than maximum allowed`(): Unit = runTest {
-      prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected, 3)
+    fun `getPrisonName will fail if number of fails is more than maximum allowed`(): Unit = runTest {
+      prisonApiMockServer.stubGetPrisonNameWithConnectionReset(prisonCode, expected, 3)
 
       assertThrows<WebClientRequestException> {
-        prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+        prisonApiClient.getPrisonName(prisonCode)
       }
     }
 
     @Test
-    fun `will succeed if number of fails is the maximum allowed`(): Unit = runTest {
-      prisonApiMockServer.stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId, 0, 1000, expected, 2)
+    fun `getPrisonName will succeed if number of fails is the maximum allowed`(): Unit = runTest {
+      prisonApiMockServer.stubGetPrisonNameWithConnectionReset(prisonCode, expected, 2)
 
-      val result = prisonApiClient.getBedAssignmentsHistoryByBookingId(bookingId)
+      val result = prisonApiClient.getPrisonName(prisonCode)
       assertThat(result).isEqualTo(expected)
     }
   }

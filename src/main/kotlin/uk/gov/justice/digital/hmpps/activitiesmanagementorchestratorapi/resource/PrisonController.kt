@@ -10,10 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.CellLocationResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.PrisonDetailsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.service.PrisonService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -24,43 +22,6 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 class PrisonController(
   private val prisonService: PrisonService,
 ) {
-  @GetMapping(value = ["/cell-location-history"])
-  @PreAuthorize("hasRole('VIEW_PRISONER_DATA')")
-  @ResponseBody
-  @Operation(
-    summary = "Retrieve cell location history for a booking ID",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "The cell location history has been returned successfully",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = CellLocationResultsDto::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Invalid Request",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  suspend fun getCellLocationHistory(
-    @RequestParam(required = true)
-    @Parameter(description = "Booking identifier")
-    bookingId: String,
-  ): CellLocationResultsDto? = prisonService.getCurrentAndPreviousBedAssignment(bookingId = bookingId)
-    ?.content
-    ?.mapNotNull { it.description }
-    ?.let { CellLocationResultsDto(cellLocations = it) }
-
   @GetMapping(value = ["/{prisonCode}/name"])
   @PreAuthorize("hasRole('VIEW_PRISONER_DATA')")
   @ResponseBody
