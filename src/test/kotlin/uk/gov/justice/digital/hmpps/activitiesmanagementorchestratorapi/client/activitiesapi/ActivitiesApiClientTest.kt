@@ -17,6 +17,9 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.RetryApiService
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.api.ActivitiesApiClient
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewSearchResultsFactory
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.integration.wiremock.ActivitiesApiMockServer
 import java.time.LocalDate
@@ -109,6 +112,37 @@ class ActivitiesApiClientTest {
         .withQueryParam("size", equalTo("10"))
         .withQueryParam("sortDirection", equalTo("ascending")),
     )
+  }
+
+  @Test
+  fun `should deserialize prisonerUpdatedDetails from event review response`() = runTest {
+    val date = LocalDate.of(2026, 8, 1)
+    val prisonerUpdatedDetails = PrisonerUpdatedDetails(
+      previousCell = "MDI-1-1-001",
+      newCell = "MDI-1-1-002",
+    )
+    val expectedResult = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventDescription = EventReviewDescription.CELL_MOVE,
+          prisonerUpdatedDetails = prisonerUpdatedDetails,
+        ),
+      ),
+      totalElements = 1,
+    )
+
+    activitiesApiMockServer.stubGetEventsForReview("MDI", date, expectedResult)
+
+    val result = activitiesApiClient.getEventsDataForReview(
+      prisonCode = "MDI",
+      date = date,
+    )
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.CELL_MOVE)
+    assertThat(result.content[0].prisonerUpdatedDetails).isEqualTo(prisonerUpdatedDetails)
+    assertThat(result.content[0].prisonerUpdatedDetails?.previousCell).isEqualTo("MDI-1-1-001")
+    assertThat(result.content[0].prisonerUpdatedDetails?.newCell).isEqualTo("MDI-1-1-002")
   }
 
   @Test

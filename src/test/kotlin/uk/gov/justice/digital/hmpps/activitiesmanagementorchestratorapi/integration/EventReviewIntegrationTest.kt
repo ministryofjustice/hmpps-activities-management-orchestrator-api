@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.AlertsUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.EventReviewDescription
+import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.activitiesapi.model.PrisonerUpdatedDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonersearchapi.model.PrisonerBasicDetails
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.dto.EventReviewSearchResultsDto
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.helpers.eventReviewFactory
@@ -49,6 +50,43 @@ class EventReviewIntegrationTest : IntegrationTestBase() {
     assertThat(result.content[0].prisonerDetails?.firstName).isEqualTo("JOHN")
     assertThat(result.content[0].prisonerDetails?.lastName).isEqualTo("SMITH")
     assertThat(result.content[0].prisonerDetails?.cellLocation).isEqualTo("1-2-003")
+  }
+
+  @Test
+  fun `should return 200 with prisonerUpdatedDetails when populated`() {
+    val prisonerUpdatedDetails = PrisonerUpdatedDetails(
+      previousCell = "MDI-1-1-001",
+      newCell = "MDI-1-1-002",
+    )
+    val apiResponse = eventReviewSearchResultsFactory(
+      content = listOf(
+        eventReviewFactory(
+          eventDescription = EventReviewDescription.CELL_MOVE,
+          prisonerUpdatedDetails = prisonerUpdatedDetails,
+        ),
+      ),
+    )
+
+    activitiesApi().stubGetEventsForReview("MDI", date, apiResponse)
+    prisonerSearchApi().stubSearchByPrisonerNumbers(
+      listOf("A1234AA"),
+      listOf(
+        PrisonerBasicDetails(
+          prisonerNumber = "A1234AA",
+          firstName = "JOHN",
+          lastName = "SMITH",
+          cellLocation = "1-2-003",
+        ),
+      ),
+    )
+
+    val result = getEventsDataForReview("MDI", date).success<EventReviewSearchResultsDto>()
+
+    assertThat(result.content).hasSize(1)
+    assertThat(result.content[0].eventDescription).isEqualTo(EventReviewDescription.CELL_MOVE)
+    assertThat(result.content[0].prisonerUpdatedDetails).isEqualTo(prisonerUpdatedDetails)
+    assertThat(result.content[0].prisonerUpdatedDetails?.previousCell).isEqualTo("MDI-1-1-001")
+    assertThat(result.content[0].prisonerUpdatedDetails?.newCell).isEqualTo("MDI-1-1-002")
   }
 
   @Test

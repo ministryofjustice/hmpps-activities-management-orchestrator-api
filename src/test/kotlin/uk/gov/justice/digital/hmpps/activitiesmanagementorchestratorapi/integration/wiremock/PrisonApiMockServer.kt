@@ -7,37 +7,24 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
-import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.BedAssignmentSearchResults
 import uk.gov.justice.digital.hmpps.activitiesmanagementorchestratorapi.client.prisonapi.model.PrisonDetails
 
 class PrisonApiMockServer : MockServer(8093) {
 
-  fun stubGetBedAssignmentsHistoryByBookingId(bookingId: String, page: Int, size: Int, results: BedAssignmentSearchResults) {
+  fun stubGetPrisonName(prisonCode: String, response: PrisonDetails) {
     stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/bookings/$bookingId/cell-history?page=$page&size=$size"))
+      WireMock.get(WireMock.urlEqualTo("/api/agencies/$prisonCode"))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(results))
+            .withBody(mapper.writeValueAsString(response))
             .withStatus(200),
         ),
     )
   }
 
-  fun stubGetBedAssignmentsHistoryByBookingIdServerError(bookingId: String, page: Int, size: Int) {
-    stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/bookings/$bookingId/cell-history?page=$page&size=$size"))
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody("""{"status": 500, "errorCode": "INTERNAL_SERVER_ERROR", "userMessage": "Internal server error", "developerMessage": "Internal server error"}""")
-            .withStatus(500),
-        ),
-    )
-  }
-
-  fun stubGetBedAssignmentsHistoryByBookingIdWithConnectionReset(bookingId: String, page: Int, size: Int, results: BedAssignmentSearchResults, numFails: Int = 1) {
-    val url = WireMock.urlEqualTo("/api/bookings/$bookingId/cell-history?page=$page&size=$size")
+  fun stubGetPrisonNameWithConnectionReset(prisonCode: String, response: PrisonDetails, numFails: Int = 1) {
+    val url = WireMock.urlEqualTo("/api/agencies/$prisonCode")
 
     for (i in 1..numFails) {
       stubFor(
@@ -56,18 +43,6 @@ class PrisonApiMockServer : MockServer(8093) {
       WireMock.get(url)
         .inScenario("Network Fail")
         .whenScenarioStateIs("Fail $numFails")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(mapper.writeValueAsString(results))
-            .withStatus(200),
-        ),
-    )
-  }
-
-  fun stubGetPrisonName(prisonCode: String, response: PrisonDetails) {
-    stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/agencies/$prisonCode"))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
