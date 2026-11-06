@@ -33,12 +33,12 @@ class ActivitiesApiClient(
     .get()
     .uri { uriBuilder ->
       uriBuilder
-        .path("/event-review/prison/{prisonCode}")
+        .path("/event-review/v2/prison/{prisonCode}")
         .queryParam("date", date)
         .apply {
           prisonerNumbers?.forEach { queryParam("prisonerNumbers", it) }
           queryParamIfPresent("filterAcknowledged", Optional.ofNullable(filterAcknowledged))
-          filterEventTypes?.forEach { queryParam("filterEventTypes", it) }
+          filterEventTypes?.forEach { queryParam("eventCodes", it) }
         }
         .queryParam("page", page)
         .queryParam("size", size)
@@ -47,6 +47,6 @@ class ActivitiesApiClient(
     }
     .retrieve()
     .bodyToMono<EventReviewSearchResults>()
-    .retryWhen(backoffSpec.withRetryContext(Context.of("api", "activities-api", "path", "/event-review/prison/{prisonCode}")))
+    .retryWhen(backoffSpec.withRetryContext(Context.of("api", "activities-api", "path", "/event-review/v2/prison/{prisonCode}")))
     .awaitSingle()
 }

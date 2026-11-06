@@ -14,7 +14,7 @@ class ActivitiesApiMockServer : MockServer(8091) {
 
   fun stubGetEventsForReview(prisonCode: String, date: LocalDate, response: EventReviewSearchResults) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/event-review/prison/$prisonCode"))
+      WireMock.get(WireMock.urlPathEqualTo("/event-review/v2/prison/$prisonCode"))
         .withQueryParam("date", WireMock.equalTo(date.toString()))
         .willReturn(
           WireMock.aResponse()
@@ -27,7 +27,7 @@ class ActivitiesApiMockServer : MockServer(8091) {
 
   fun stubGetEventsForReviewServerError(prisonCode: String, date: LocalDate) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/event-review/prison/$prisonCode"))
+      WireMock.get(WireMock.urlPathEqualTo("/event-review/v2/prison/$prisonCode"))
         .withQueryParam("date", WireMock.equalTo(date.toString()))
         .willReturn(
           WireMock.aResponse()
@@ -40,7 +40,7 @@ class ActivitiesApiMockServer : MockServer(8091) {
 
   fun stubGetEventsForReviewNotFound(prisonCode: String, date: LocalDate) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/event-review/prison/$prisonCode"))
+      WireMock.get(WireMock.urlPathEqualTo("/event-review/v2/prison/$prisonCode"))
         .withQueryParam("date", WireMock.equalTo(date.toString()))
         .willReturn(
           WireMock.aResponse()
@@ -52,7 +52,7 @@ class ActivitiesApiMockServer : MockServer(8091) {
   }
 
   fun stubGetEventsForReviewWithConnectionReset(prisonCode: String, date: LocalDate, response: EventReviewSearchResults, numFails: Int = 1) {
-    val url = "/event-review/prison/$prisonCode"
+    val url = "/event-review/v2/prison/$prisonCode"
 
     for (i in 1..numFails) {
       stubFor(
