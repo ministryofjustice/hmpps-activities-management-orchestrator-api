@@ -74,13 +74,13 @@ class ActivitiesApiClientTest {
     assertThat(result).isEqualTo(expectedResult)
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withQueryParam("date", equalTo("2026-08-01"))
         .withQueryParam("prisonerNumbers", equalTo("A1234AA"))
         .withQueryParam("prisonerNumbers", equalTo("B2345BB"))
         .withQueryParam("filterAcknowledged", equalTo("true"))
-        .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.released"))
-        .withQueryParam("filterEventTypes", equalTo("prison-offender-events.prisoner.remanded"))
+        .withQueryParam("eventCodes", equalTo("prison-offender-events.prisoner.released"))
+        .withQueryParam("eventCodes", equalTo("prison-offender-events.prisoner.remanded"))
         .withQueryParam("page", equalTo("0"))
         .withQueryParam("size", equalTo("20"))
         .withQueryParam("sortDirection", equalTo("descending")),
@@ -106,7 +106,7 @@ class ActivitiesApiClientTest {
     assertThat(result).isEqualTo(expectedResult)
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withQueryParam("date", equalTo("2026-08-01"))
         .withQueryParam("page", equalTo("0"))
         .withQueryParam("size", equalTo("10"))
@@ -163,7 +163,7 @@ class ActivitiesApiClientTest {
     )
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withoutQueryParam("prisonerNumbers"),
     )
   }
@@ -186,7 +186,7 @@ class ActivitiesApiClientTest {
     )
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withoutQueryParam("filterAcknowledged"),
     )
   }
@@ -209,8 +209,8 @@ class ActivitiesApiClientTest {
     )
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
-        .withoutQueryParam("filterEventTypes"),
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
+        .withoutQueryParam("eventCodes"),
     )
   }
 
@@ -232,7 +232,7 @@ class ActivitiesApiClientTest {
     )
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withoutQueryParam("prisonerNumbers"),
     )
   }
@@ -255,7 +255,7 @@ class ActivitiesApiClientTest {
     )
 
     activitiesApiMockServer.verify(
-      getRequestedFor(urlPathEqualTo("/event-review/prison/MDI"))
+      getRequestedFor(urlPathEqualTo("/event-review/v2/prison/MDI"))
         .withoutQueryParam("filterEventTypes"),
     )
   }
